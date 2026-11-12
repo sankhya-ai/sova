@@ -4,6 +4,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CONFIG_PATH, DEFAULTS, type SovaConfig } from "./config.js";
 import { SCREENS_PATH } from "./coverage.js";
+import { playwrightCli } from "./playwright.js";
+import { onPath, runTool } from "./util.js";
 
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SKILL_SOURCE = join(PACKAGE_ROOT, "skill");
@@ -88,8 +90,14 @@ export function detectApp(root: string): { startCommand?: string; baseURL?: stri
 
 function run(root: string, command: string, args: string[]): boolean {
   console.log(`\n$ ${command} ${args.join(" ")}`);
-  return spawnSync(command, args, { cwd: root, stdio: "inherit" }).status === 0;
+  return runTool(command, args, { cwd: root, stdio: "inherit" }).status === 0;
 }
+
+/** How to install the browser driver on this system when Homebrew is not available. */
+export const DRIVER_INSTALL =
+  process.platform === "win32"
+    ? "irm https://raw.githubusercontent.com/block/trailblaze/main/install.ps1 | iex   (PowerShell; needs Java 17+)"
+    : "curl -fsSL https://raw.githubusercontent.com/block/trailblaze/main/install.sh | bash   (needs Java 17+)";
 
 /** Install what is missing. Returns one log line per thing attempted. */
 function installDependencies(root: string): string[] {
@@ -103,16 +111,17 @@ function installDependencies(root: string): string[] {
     const add = manager === "npm" ? ["install", "-D", "@playwright/test"] : ["add", "-D", "@playwright/test"];
     log.push(run(root, manager, add) ? "installed @playwright/test" : `FAILED   ${manager} ${add.join(" ")}`);
   }
-  if (existsSync(join(root, "node_modules", "@playwright", "test"))) {
-    const ok = run(root, "npx", ["--no-install", "playwright", "install", "chromium"]);
-    log.push(ok ? "installed Chromium for Playwright" : "FAILED   npx playwright install chromium");
+  if (existsSync(playwrightCli(root))) {
+    console.log("\n$ playwright install chromium");
+    const ok = spawnSync(process.execPath, [playwrightCli(root), "install", "chromium"], { cwd: root, stdio: "inherit" }).status === 0;
+    log.push(ok ? "installed Chromium for Playwright" : "FAILED   playwright install chromium");
   }
   if (!onPath("trailblaze")) {
     if (onPath("brew")) {
       const ok = run(root, "brew", ["install", "block/tap/trailblaze"]);
       log.push(ok ? "installed trailblaze" : "FAILED   brew install block/tap/trailblaze");
     } else {
-      log.push("MISSING  trailblaze: install it from https://block.github.io/trailblaze (Homebrew not found)");
+      log.push(`MISSING  browser driver (Trailblaze). Install it with:\n         ${DRIVER_INSTALL}`);
     }
   }
   return log;
@@ -204,11 +213,6 @@ export interface DoctorCheck {
   fix?: string;
 }
 
-function onPath(command: string): boolean {
-  const probe = spawnSync(process.platform === "win32" ? "where" : "which", [command], { encoding: "utf8" });
-  return probe.status === 0;
-}
-
 /** Check everything a sova run depends on. */
 export async function doctor(root: string): Promise<DoctorCheck[]> {
   const checks: DoctorCheck[] = [];
@@ -217,7 +221,7 @@ export async function doctor(root: string): Promise<DoctorCheck[]> {
   checks.push({
     name: "browser driver (Trailblaze) installed, needed to explore and record",
     ok: onPath("trailblaze"),
-    fix: "sova init   (or: brew install block/tap/trailblaze)",
+    fix: onPath("brew") ? "sova init" : DRIVER_INSTALL,
   });
   checks.push({
     name: "@playwright/test installed (needed to run tests)",

@@ -89,6 +89,14 @@ One test per trail, one `test.step` per trail step, named with the step's own te
 - A trail that cannot be replayed exactly is **blocked** with the step and the reason;
   sova does not guess.
 
+## Platforms
+
+sova itself is Node and runs on macOS, Linux and Windows; CI runs the unit tests and the
+demo gate on all three. Generated specs are plain Playwright and run anywhere Playwright
+does. The browser driver (Trailblaze) needs Java 17+ when it is not installed through
+Homebrew. `sova init` installs it through Homebrew when Homebrew is present; otherwise it
+prints the one command to run for your system.
+
 ## Limits
 
 - **Web only.** Trailblaze also drives iOS and Android; sova ignores those recordings.

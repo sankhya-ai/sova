@@ -1,9 +1,8 @@
-import { spawnSync } from "node:child_process";
 import { statSync } from "node:fs";
 import { join } from "node:path";
 import type { SovaConfig } from "./config.js";
 import { isTrailFile } from "./emit.js";
-import { UserError, walk } from "./util.js";
+import { onPath, runTool, UserError, walk } from "./util.js";
 
 /**
  * The browser-driving commands. Each one runs the Trailblaze CLI, which owns the browser
@@ -25,11 +24,10 @@ export const ACTIONS: Record<string, { tool: string; use: string }> = {
 };
 
 function trailblaze(root: string, args: string[]): number {
-  const result = spawnSync("trailblaze", args, { cwd: root, stdio: "inherit" });
-  if (result.error && (result.error as NodeJS.ErrnoException).code === "ENOENT") {
-    throw new UserError("The browser driver is not installed. Run `sova init` to install it.");
+  if (!onPath("trailblaze")) {
+    throw new UserError("The browser driver is not installed. Run `sova doctor` to see how to install it.");
   }
-  return result.status ?? 1;
+  return runTool("trailblaze", args, { cwd: root, stdio: "inherit" }).status ?? 1;
 }
 
 /** Pull `-s <text>` / `--step <text>` out of `args`. */

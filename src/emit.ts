@@ -258,7 +258,8 @@ export function emitAll(root: string, config: SovaConfig, write: boolean): EmitR
     let upToDate = false;
     if (result.spec !== null) {
       expected.add(specPath);
-      upToDate = existsSync(specPath) && readFileSync(specPath, "utf8") === result.spec;
+      // Git on Windows may check specs out with CRLF endings; that is not a content change.
+      upToDate = existsSync(specPath) && readFileSync(specPath, "utf8").replace(/\r\n/g, "\n") === result.spec;
       if (write && !upToDate) {
         mkdirSync(dirname(specPath), { recursive: true });
         writeFileSync(specPath, result.spec);

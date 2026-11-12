@@ -10,6 +10,7 @@ import { detectApp } from "../src/init.js";
 import { lintSource } from "../src/lint.js";
 import { Blocked, locatorFromRef, locatorFromSelector, nameMatcher } from "../src/locator.js";
 import { parseTrail } from "../src/trail.js";
+import { quoteForCmd } from "../src/util.js";
 
 const config = { baseURL: "http://localhost:3000" };
 
@@ -270,4 +271,12 @@ test("driving commands translate to the driver's CLI and always carry a step", (
   assert.deepEqual(actArgs(cfg, ["back", "-s", "Go back"]), [...device, "web_navigate", "action=BACK", "-s", "Go back"]);
   assert.deepEqual(actArgs(cfg, ["web_drag", "--help"]), ["tool", "web_drag", "--help"]);
   assert.throws(() => actArgs(cfg, ["click", "ref=e5"]), /Say what the step is for/);
+});
+
+test("arguments with spaces or shell characters are quoted for Windows", () => {
+  assert.equal(quoteForCmd("ref=e5"), "ref=e5");
+  assert.equal(quoteForCmd("Click Sign in"), '"Click Sign in"');
+  assert.equal(quoteForCmd('say "hi"'), '"say \\"hi\\""');
+  assert.equal(quoteForCmd("a&b"), '"a&b"');
+  assert.equal(quoteForCmd(""), '""');
 });

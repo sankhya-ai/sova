@@ -4,8 +4,13 @@ import { join } from "node:path";
 import type { SovaConfig } from "./config.js";
 import { UserError } from "./util.js";
 
+/** Playwright's CLI entry point. Run with this Node, so no `npx` launcher is involved. */
+export function playwrightCli(root: string): string {
+  return join(root, "node_modules", "@playwright", "test", "cli.js");
+}
+
 function requirePlaywright(root: string, config: SovaConfig): void {
-  if (!existsSync(join(root, "node_modules", "@playwright", "test"))) {
+  if (!existsSync(playwrightCli(root))) {
     throw new UserError(
       "@playwright/test is not installed here. Run `npm i -D @playwright/test && npx playwright install chromium`.",
     );
@@ -19,8 +24,8 @@ function requirePlaywright(root: string, config: SovaConfig): void {
 export function runTests(root: string, config: SovaConfig, extraArgs: string[]): number {
   requirePlaywright(root, config);
   const result = spawnSync(
-    "npx",
-    ["--no-install", "playwright", "test", "-c", config.playwrightConfig, ...extraArgs],
+    process.execPath,
+    [playwrightCli(root), "test", "-c", config.playwrightConfig, ...extraArgs],
     { cwd: root, stdio: "inherit" },
   );
   return result.status ?? 1;
@@ -73,9 +78,9 @@ export function measureStability(root: string, config: SovaConfig, repeat: numbe
   rmSync(jsonPath, { force: true });
 
   const result = spawnSync(
-    "npx",
+    process.execPath,
     [
-      "--no-install", "playwright", "test", "-c", config.playwrightConfig,
+      playwrightCli(root), "test", "-c", config.playwrightConfig,
       `--repeat-each=${repeat}`, "--retries=0", "--reporter=json",
     ],
     {
