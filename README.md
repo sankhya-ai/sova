@@ -23,7 +23,7 @@ Status: a working spike. See [Limits](#limits).
 In the web app's repo:
 
 ```bash
-npm i -D github:<your-org>/sova      # until the package is published under its own name
+npm i -D @sankhya/sova
 npx --no-install sova init
 ```
 
@@ -40,8 +40,9 @@ detects. It is safe to re-run.
 
 Then tell your agent: **"Use the sova skill to test this app."**
 
-Use `npx --no-install sova`, not `npx sova`: an unrelated package called `sova` exists on
-npm, and plain `npx` would fetch it if the local install were missing.
+The package is `@sankhya/sova`; the command it installs is `sova`. Use
+`npx --no-install sova`, not `npx sova`: an unrelated package called plain `sova` exists on
+npm, and `npx` would fetch that one if the local install were missing.
 
 ## What ends up in the repo
 
@@ -114,3 +115,7 @@ node ../../dist/cli.js emit && node ../../dist/cli.js check
 
 `examples/demo-app` is a three-screen app with trails written by hand in Trailblaze's
 recorded format, and the specs sova generates from them.
+
+## License
+
+[Apache 2.0](LICENSE), the same licence as Trailblaze.

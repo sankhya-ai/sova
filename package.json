@@ -1,7 +1,8 @@
 {
-  "name": "sova",
+  "name": "@sankhya/sova",
   "version": "0.0.1",
   "description": "Your coding agent explores a web app with Trailblaze, and sova turns the recorded trails into gated Playwright tests.",
+  "license": "Apache-2.0",
   "type": "module",
   "bin": {
     "sova": "dist/cli.js"
@@ -9,7 +10,8 @@
   "files": [
     "dist",
     "skill",
-    "templates"
+    "templates",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=20"
