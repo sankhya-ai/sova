@@ -1,0 +1,30 @@
+{
+  "name": "sova",
+  "version": "0.0.1",
+  "description": "Your coding agent explores a web app with Trailblaze, and sova turns the recorded trails into gated Playwright tests.",
+  "type": "module",
+  "bin": {
+    "sova": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skill",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

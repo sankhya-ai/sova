@@ -1,0 +1,98 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: 'Changing the display name updates the dashboard greeting'
+
+trail:
+  - step: "Open the app and sign in"
+    recording:
+      web:
+        - web_navigate:
+            url: http://127.0.0.1:4173/
+        - web_type:
+            text: ada@example.com
+            nodeSelector:
+              web:
+                ariaRole: textbox
+                ariaNameRegex: Email
+        - web_type:
+            text: correct-horse
+            nodeSelector:
+              web:
+                ariaRole: textbox
+                ariaNameRegex: Password
+        - web_click:
+            nodeSelector:
+              web:
+                ariaRole: button
+                ariaNameRegex: Sign in
+
+  - step: "Open Settings"
+    recording:
+      web:
+        - web_click:
+            nodeSelector:
+              web:
+                ariaRole: link
+                ariaNameRegex: Settings
+
+  - step: "Change the display name to Grace and pick the dark theme"
+    recording:
+      web:
+        - web_type:
+            text: Grace
+            nodeSelector:
+              web:
+                ariaRole: textbox
+                ariaNameRegex: Display name
+        - web_selectOption:
+            values:
+              - dark
+            nodeSelector:
+              web:
+                ariaRole: combobox
+                ariaNameRegex: Theme
+
+  - step: "Save"
+    recording:
+      web:
+        - web_click:
+            nodeSelector:
+              web:
+                ariaRole: button
+                ariaNameRegex: Save
+
+  - step: "The save is confirmed"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            nodeSelector:
+              web:
+                ariaRole: status
+                ariaNameRegex: Settings saved
+        - web_verifyValue:
+            type: VALUE
+            expected: dark
+            nodeSelector:
+              web:
+                ariaRole: combobox
+                ariaNameRegex: Theme
+
+  - step: "Go back to the dashboard"
+    recording:
+      web:
+        - web_click:
+            nodeSelector:
+              web:
+                ariaRole: link
+                ariaNameRegex: Dashboard
+
+  - step: "The greeting uses the new name"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            nodeSelector:
+              web:
+                ariaRole: paragraph
+                ariaNameRegex: Signed in as Grace

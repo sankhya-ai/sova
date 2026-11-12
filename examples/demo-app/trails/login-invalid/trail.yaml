@@ -1,0 +1,54 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: 'Log in with a wrong password shows an error'
+
+trail:
+  - step: "Open the login page"
+    recording:
+      web:
+        - web_navigate:
+            url: http://127.0.0.1:4173/
+
+  - step: "Type the email"
+    recording:
+      web:
+        - web_type:
+            text: ada@example.com
+            nodeSelector:
+              web:
+                ariaRole: textbox
+                ariaNameRegex: Email
+
+  - step: "Type a wrong password"
+    recording:
+      web:
+        - web_type:
+            text: not-the-password
+            nodeSelector:
+              web:
+                cssSelector: "#password"
+
+  - step: "Click Sign in"
+    recording:
+      web:
+        - web_click:
+            nodeSelector:
+              web:
+                ariaRole: button
+                ariaNameRegex: Sign in
+
+  - step: "An error is shown and the user stays on the login page"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            nodeSelector:
+              web:
+                ariaRole: alert
+                ariaNameRegex: Wrong email or password
+        - web_verifyElementVisible:
+            nodeSelector:
+              web:
+                ariaRole: heading
+                ariaNameRegex: Sign in

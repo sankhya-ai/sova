@@ -1,0 +1,12 @@
+{
+  "name": "sova-demo-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs",
+    "test:e2e:sova": "sova run"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

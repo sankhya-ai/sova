@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Ledger demo</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 32rem; margin: 3rem auto; padding: 0 1rem; }
+    label { display: block; margin-top: 1rem; }
+    input, select, button { font: inherit; padding: .4rem .6rem; }
+    [hidden] { display: none; }
+    nav a { margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <!-- A three-screen app with in-memory state, so every page load starts signed out. -->
+  <main id="login">
+    <h1>Sign in</h1>
+    <form id="login-form">
+      <label>Email <input id="email" type="email" autocomplete="off"></label>
+      <label>Password <input id="password" type="password"></label>
+      <p><button type="submit">Sign in</button></p>
+      <p role="alert" id="login-error" hidden>Wrong email or password</p>
+    </form>
+  </main>
+
+  <main id="dashboard" hidden>
+    <nav><a href="#" id="nav-dashboard">Dashboard</a><a href="#" id="nav-settings">Settings</a></nav>
+    <h1>Dashboard</h1>
+    <p id="greeting"></p>
+  </main>
+
+  <main id="settings" hidden>
+    <nav><a href="#" id="nav-back">Dashboard</a></nav>
+    <h1>Settings</h1>
+    <form id="settings-form">
+      <label>Display name <input id="display-name"></label>
+      <label>Theme
+        <select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select>
+      </label>
+      <p><button type="submit">Save</button></p>
+      <p role="status" id="saved" hidden>Settings saved</p>
+    </form>
+  </main>
+
+  <script>
+    const state = { name: 'Ada' };
+    const show = (id) => {
+      for (const screen of document.querySelectorAll('main')) screen.hidden = screen.id !== id;
+      document.getElementById('greeting').textContent = 'Signed in as ' + state.name;
+    };
+    document.getElementById('login-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const ok = document.getElementById('email').value === 'ada@example.com'
+        && document.getElementById('password').value === 'correct-horse';
+      document.getElementById('login-error').hidden = ok;
+      // The short delay stands in for a network round trip.
+      if (ok) setTimeout(() => show('dashboard'), 150);
+    });
+    document.getElementById('nav-settings').addEventListener('click', (e) => { e.preventDefault(); show('settings'); });
+    document.getElementById('nav-back').addEventListener('click', (e) => { e.preventDefault(); show('dashboard'); });
+    document.getElementById('settings-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      state.name = document.getElementById('display-name').value || state.name;
+      document.getElementById('saved').hidden = false;
+    });
+  </script>
+</body>
+</html>

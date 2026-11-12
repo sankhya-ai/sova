@@ -1,0 +1,60 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: 'Log in with valid credentials'
+  tags: [smoke]
+
+trail:
+  - step: "Open the login page"
+    recording:
+      web:
+        - web_navigate:
+            url: http://127.0.0.1:4173/
+
+  - step: "Type the email"
+    recording:
+      web:
+        - web_type:
+            text: ada@example.com
+            ref: e3
+            nodeSelector:
+              web:
+                ariaRole: textbox
+                ariaNameRegex: Email
+
+  - step: "Type the password"
+    recording:
+      web:
+        - web_type:
+            text: correct-horse
+            ref: e4
+            nodeSelector:
+              web:
+                ariaRole: textbox
+                ariaNameRegex: Password
+
+  - step: "Click Sign in"
+    recording:
+      web:
+        - web_click:
+            ref: e5
+            nodeSelector:
+              web:
+                ariaRole: button
+                ariaNameRegex: Sign in
+
+  - step: "The dashboard is shown for the signed-in user"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            nodeSelector:
+              web:
+                ariaRole: heading
+                ariaNameRegex: Dashboard
+                headingLevel: 1
+        - web_verifyElementVisible:
+            nodeSelector:
+              web:
+                ariaRole: paragraph
+                ariaNameRegex: Signed in as Ada

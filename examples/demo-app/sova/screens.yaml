@@ -1,0 +1,15 @@
+# The demo app's screens. `sova coverage` fails while a screen has no working trail
+# and no `skip:` reason.
+screens:
+  - id: login
+    route: /
+    source: site/index.html
+    trails: [login, login-invalid]
+  - id: dashboard
+    route: /
+    source: site/index.html
+    trails: [login, settings-save]
+  - id: settings
+    route: /
+    source: site/index.html
+    trails: [settings-save]

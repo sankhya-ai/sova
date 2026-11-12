@@ -1,0 +1,7 @@
+{
+  "baseURL": "http://127.0.0.1:4173",
+  "startCommand": "node serve.mjs",
+  "trailsDir": "trails",
+  "specsDir": "sova/tests",
+  "playwrightConfig": "sova/playwright.config.mts"
+}
