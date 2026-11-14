@@ -50,6 +50,7 @@ is flaky or asserts nothing.
 | **Writes plain Playwright** | One `.spec.ts` per flow, with role and label locators and web-first assertions. No sova runtime in the tests: `npx playwright test` runs them. |
 | **Signs in once** | One sign-in flow runs first and every other test starts from its session. Passwords stay in a git-ignored `sova/.env`; the recording holds only the variable's name. |
 | **Refuses bad tests** | `sova check` fails a test that is out of date, breaks Playwright practice, or fails even once in five runs with retries off. |
+| **Reports like Allure** | `sova report` builds an Allure report of the last run: every step by name, with the screenshot, video and trace of anything that failed. |
 | **Tracks coverage by screen** | `sova coverage` fails while any screen has neither a working test nor a written reason to skip it. |
 | **Says no instead of guessing** | A step that cannot be replayed exactly is reported as blocked, with the step and the reason. An element no test could find again is refused before it is clicked. |
 
@@ -183,6 +184,7 @@ If your local backend is slow when several tests run at once, set `"workers": 2`
 | `sova check [--repeat n]` | The gate. |
 | `sova coverage` | Screens covered, skipped and uncovered. |
 | `sova run [-- <playwright args>]` | Runs the suite: `sova run -- --headed`. |
+| `sova report [--open]` | Builds an [Allure](https://allurereport.org) report of the last run into `sova/report/`. |
 
 ## Where it stands
 

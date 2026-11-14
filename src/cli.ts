@@ -7,7 +7,7 @@ import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./d
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
 import { lintFile, type Finding } from "./lint.js";
-import { measureStability, runTests } from "./playwright.js";
+import { report, measureStability, runTests } from "./playwright.js";
 import { UserError, walk } from "./util.js";
 
 const HELP = `sova: explored trails in, gated Playwright tests out.
@@ -42,6 +42,8 @@ Usage: sova <command> [options]
   coverage          Compare sova/screens.yaml with the trails that exist.
   run [-- <playwright args>]
                     Run the generated suite.
+  report [--open]   Build the report for the last run (Allure when installed,
+                    with steps, screenshots, videos and traces of failures).
   skill show|install
                     Print the agent skill, or (re)install it into this project.
 `;
@@ -227,6 +229,8 @@ async function main(): Promise<number> {
       const separator = args.indexOf("--");
       return runTests(root, loadConfig(root), separator === -1 ? args : args.slice(separator + 1));
     }
+    case "report":
+      return report(root, loadConfig(root), args.includes("--open"));
     case "skill": {
       if (args[0] === "show") {
         process.stdout.write(readFileSync(join(SKILL_SOURCE, "SKILL.md"), "utf8"));

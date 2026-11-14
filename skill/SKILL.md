@@ -158,6 +158,7 @@ blocked, any app bugs found, any `data-testid` you added. Then how to run it:
 npx --no-install sova run                     # the whole suite
 npx --no-install sova run -- --headed         # any Playwright flag after --
 npx --no-install sova run -- -g "log in"      # one test
+npx --no-install sova report --open           # the report for the last run
 ```
 
 For CI: `npx --no-install sova emit --check && npx --no-install sova run`.

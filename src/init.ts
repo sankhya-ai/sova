@@ -111,6 +111,11 @@ function installDependencies(root: string): string[] {
     const add = manager === "npm" ? ["install", "-D", "@playwright/test"] : ["add", "-D", "@playwright/test"];
     log.push(run(root, manager, add) ? "installed @playwright/test" : `FAILED   ${manager} ${add.join(" ")}`);
   }
+  if (!existsSync(join(root, "node_modules", "allure-playwright")) || !existsSync(join(root, "node_modules", "allure"))) {
+    const manager = detectPackageManager(root);
+    const add = [manager === "npm" ? "install" : "add", "-D", "allure-playwright", "allure"];
+    log.push(run(root, manager, add) ? "installed Allure (for `sova report`)" : `FAILED   ${manager} ${add.join(" ")}`);
+  }
   if (existsSync(playwrightCli(root))) {
     console.log("\n$ playwright install chromium");
     const ok = spawnSync(process.execPath, [playwrightCli(root), "install", "chromium"], { cwd: root, stdio: "inherit" }).status === 0;

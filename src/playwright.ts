@@ -23,12 +23,46 @@ function requirePlaywright(root: string, config: SovaConfig): void {
 /** Run the generated suite with Playwright's own output. Returns Playwright's exit code. */
 export function runTests(root: string, config: SovaConfig, extraArgs: string[]): number {
   requirePlaywright(root, config);
+  // A report covers one run, so the previous run's results go first.
+  rmSync(join(root, ALLURE_RESULTS), { recursive: true, force: true });
   const result = spawnSync(
     process.execPath,
     [playwrightCli(root), "test", "-c", config.playwrightConfig, ...extraArgs],
     { cwd: root, stdio: "inherit" },
   );
   return result.status ?? 1;
+}
+
+const ALLURE_RESULTS = join("sova", ".results", "allure-results");
+const REPORT_DIR = join("sova", "report");
+const HTML_REPORT = join("sova", ".results", "html");
+
+/**
+ * Build the report for the last `sova run`: Allure when it is installed, otherwise
+ * Playwright's own HTML report. Returns the process exit code.
+ */
+export function report(root: string, config: SovaConfig, open: boolean): number {
+  const allurePackage = join(root, "node_modules", "allure", "package.json");
+  if (existsSync(allurePackage) && existsSync(join(root, "node_modules", "allure-playwright"))) {
+    if (!existsSync(join(root, ALLURE_RESULTS))) {
+      throw new UserError("There are no results yet. Run `sova run` first, then `sova report`.");
+    }
+    const pkg = JSON.parse(readFileSync(allurePackage, "utf8")) as { bin?: string | Record<string, string> };
+    const bin = typeof pkg.bin === "string" ? pkg.bin : pkg.bin?.allure;
+    if (!bin) throw new UserError("The installed allure package has no command. Reinstall it: npm i -D allure");
+    const args = [join(root, "node_modules", "allure", bin), "generate", ALLURE_RESULTS, "--output", REPORT_DIR, "--clean", "--name", "sova end-to-end tests"];
+    if (open) args.push("--open");
+    const code = spawnSync(process.execPath, args, { cwd: root, stdio: "inherit" }).status ?? 1;
+    if (code === 0) console.log(`\nreport   ${join(REPORT_DIR, "index.html")}${open ? "" : "   (open it with `sova report --open`)"}`);
+    return code;
+  }
+  if (!existsSync(join(root, HTML_REPORT, "index.html"))) {
+    throw new UserError("There are no results yet. Run `sova run` first, then `sova report`.");
+  }
+  console.log(`report   ${join(HTML_REPORT, "index.html")}  (Playwright's report; for Allure: npm i -D allure-playwright allure)`);
+  if (!open) return 0;
+  requirePlaywright(root, config);
+  return spawnSync(process.execPath, [playwrightCli(root), "show-report", HTML_REPORT], { cwd: root, stdio: "inherit" }).status ?? 1;
 }
 
 export interface TestStability {
