@@ -15,6 +15,32 @@ export interface SovaConfig {
   playwrightConfig: string;
   /** The browser device the driving commands (`open`, `look`, `act`) control. */
   device: string;
+  /**
+   * Signing in once for the whole suite. `trail` is the flow that signs in; it runs first and
+   * every other test starts from the session it leaves. Trails listed in `anonymous` start
+   * signed out instead (the sign-in page's own tests).
+   */
+  login?: { trail: string; anonymous?: string[] };
+  /** How many tests run at once. Leave unset for Playwright's default. */
+  workers?: number;
+  /** How long an assertion waits, in milliseconds. Playwright's default is 5000. */
+  expectTimeout?: number;
+}
+
+/** Where secrets for flows live. Never committed; `sova init` git-ignores it. */
+export const ENV_PATH = join("sova", ".env");
+
+/** `KEY=value` lines of `sova/.env`, under the real environment (which wins). */
+export function loadEnv(root: string): Record<string, string | undefined> {
+  const values: Record<string, string | undefined> = {};
+  const path = join(root, ENV_PATH);
+  if (existsSync(path)) {
+    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+      const match = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
+      if (match) values[match[1]!] = match[2]!.replace(/^(['"])(.*)\1$/, "$2");
+    }
+  }
+  return { ...values, ...process.env };
 }
 
 export const CONFIG_PATH = join("sova", "config.json");

@@ -30,7 +30,7 @@ const SCREENS_TEMPLATE = `# The app's screens, mapped from its routes and compon
 screens: []
 `;
 
-const GITIGNORE_LINES = ["sova/.results/"];
+const GITIGNORE_LINES = ["sova/.results/", "sova/.auth/", "sova/.env", "sova/report/", ".trailblaze/", "logs/"];
 
 export interface InitOptions {
   baseURL?: string;

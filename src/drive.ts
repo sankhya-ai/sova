@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parse as parseYaml } from "yaml";
-import type { SovaConfig } from "./config.js";
+import { ENV_PATH, loadEnv, type SovaConfig } from "./config.js";
 import { isTrailFile } from "./emit.js";
+import { readTrail } from "./trail.js";
 import { AUTHOR_NAMED_ROLES, NAME_PROHIBITED_ROLES } from "./locator.js";
 import { onPath, runTool, UserError, walk } from "./util.js";
 
@@ -83,7 +84,7 @@ export function durableRef(ref: string, screen: Record<string, ScreenElement> | 
   return `${element.role} "${element.name}"`;
 }
 
-function trailblaze(root: string, args: string[]): number {
+function trailblaze(root: string, args: string[], quiet = false): number {
   if (!onPath("trailblaze")) {
     throw new UserError("The browser driver is not installed. Run `sova doctor` to see how to install it.");
   }
@@ -94,7 +95,7 @@ function trailblaze(root: string, args: string[]): number {
     maxBuffer: 64 * 1024 * 1024,
   });
   const output = String(result.stdout ?? "");
-  process.stdout.write(output);
+  if (!quiet || result.status !== 0) process.stdout.write(output);
   // Remember the screen the driver just printed, so the next `act` can resolve its refs.
   const screen = parseScreen(output);
   if (Object.keys(screen).length > 0) {
@@ -178,7 +179,18 @@ export function act(root: string, config: SovaConfig, args: string[]): number {
   const planned = actArgs(config, args, screen);
   const noted: JournalEntry[] = [];
   const step = planned[planned.length - 1]!;
-  const driverArgs = planned.map((arg) => {
+  const env = loadEnv(root);
+  const driverArgs = planned.map((arg, index) => {
+    // `text=env:NAME` types a secret: the driver gets the value, the trail gets `{{env.NAME}}`.
+    const secret = index < planned.length - 2 ? /^([A-Za-z]+)=env:([A-Za-z_][A-Za-z0-9_]*)$/.exec(arg) : null;
+    if (secret) {
+      const value = env[secret[2]!];
+      if (value === undefined || value === "") {
+        throw new UserError(`${secret[2]} is not set. Add ${secret[2]}=<value> to ${ENV_PATH} (it is git-ignored) or the environment.`);
+      }
+      noted.push({ step, key: secret[1]!, sent: value, durable: `{{env.${secret[2]}}}` });
+      return `${secret[1]}=${value}`;
+    }
     if (!/^ref=e\d+$/.test(arg)) return arg;
     const sent = driverRef(arg.slice(4), screen);
     noted.push({ step, sent, durable: durableRef(arg.slice(4), screen) });
@@ -192,7 +204,9 @@ export function act(root: string, config: SovaConfig, args: string[]): number {
 /** One driven step that used a snapshot ref, and the selector that ref stood for. */
 export interface JournalEntry {
   step: string;
-  /** The ref as it was handed to the driver, which is how the driver records it. */
+  /** The argument this is about. Absent means `ref`. */
+  key?: string;
+  /** The value as it was handed to the driver, which is how the driver records it. */
   sent: string;
   durable: string;
 }
@@ -232,15 +246,16 @@ export function withDurableRefs(trailYaml: string, journal: JournalEntry[]): str
         }
         return line;
       }
-      const refLine = /^(\s*ref:\s*)(.+?)\s*$/.exec(line);
+      const refLine = /^(\s*([A-Za-z]+):\s*)(.+?)\s*$/.exec(line);
       if (!refLine) return line;
-      let recorded = refLine[2]!;
+      const key = refLine[2]!;
+      let recorded = refLine[3]!;
       try {
         recorded = String(parseYaml(recorded));
       } catch {
         // Not a YAML scalar on its own; compare it as written.
       }
-      const index = left.findIndex((entry) => entry.sent === recorded && entry.step === step);
+      const index = left.findIndex((entry) => (entry.key ?? "ref") === key && entry.sent === recorded && entry.step === step);
       if (index === -1) return line;
       const [entry] = left.splice(index, 1);
       return `${refLine[1]}${JSON.stringify(entry!.durable)}`;
@@ -282,4 +297,51 @@ export function save(root: string, config: SovaConfig, id: string): { code: numb
 /** Replay a trail, letting the driver repair steps the app has drifted away from. */
 export function heal(root: string, config: SovaConfig, id: string): number {
   return trailblaze(root, ["run", join(config.trailsDir, id), "-d", config.device, "--self-heal"]);
+}
+
+/** A clean, signed-out browser: drop the flow in progress and restart the driver. */
+export function reset(root: string, config: SovaConfig): number {
+  discard(root, config);
+  return trailblaze(root, ["--stop"]);
+}
+
+/**
+ * Sign the driven browser in by replaying the configured sign-in flow, without recording it.
+ * Flows driven afterwards start signed in, the way their tests will.
+ */
+export function login(root: string, config: SovaConfig): number {
+  const id = config.login?.trail;
+  if (!id) {
+    throw new UserError('No sign-in flow is configured. Drive one, save it, then set "login": { "trail": "<id>" } in sova/config.json.');
+  }
+  const candidates = [join(root, config.trailsDir, id, "trail.yaml"), join(root, config.trailsDir, `${id}.trail.yaml`)];
+  const file = candidates.find((path) => existsSync(path));
+  if (!file) throw new UserError(`The sign-in flow trails/${id} does not exist yet. Drive it and \`sova save ${id}\`.`);
+  const env = loadEnv(root);
+  reset(root, config);
+  for (const step of readTrail(file).steps) {
+    for (const call of step.calls ?? []) {
+      const args = Object.entries(call.args).map(([key, value]) => {
+        let text = String(value).replace(/\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}/g, (_, name: string) => {
+          const found = env[name];
+          if (found === undefined) throw new UserError(`${name} is not set. Add it to ${ENV_PATH} or the environment.`);
+          return found;
+        });
+        const described = key === "ref" ? /^([a-z]+)\s+"(.*)"$/.exec(text) : null;
+        if (described && (AUTHOR_NAMED_ROLES.has(described[1]!) || NAME_PROHIBITED_ROLES.has(described[1]!))) text = described[2]!;
+        return `${key}=${text}`;
+      });
+      const code = trailblaze(root, ["tool", "-d", config.device, call.tool, ...args, "-s", step.text], true);
+      if (code !== 0) {
+        console.log(`Sign-in stopped at "${step.text}". Fix the flow (or the account in ${ENV_PATH}) and try again.`);
+        return code;
+      }
+      console.log(`ok       ${step.text}`);
+    }
+  }
+  // Close the session so these steps are not part of the next flow; the browser stays signed in.
+  trailblaze(root, ["session", "stop", "-d", config.device], true);
+  rmSync(join(root, SCREEN_PATH), { force: true });
+  console.log("Signed in. Flows you drive now start signed in.");
+  return 0;
 }

@@ -331,3 +331,28 @@ test("a saved trail gets the selector each snapshot ref stood for", () => {
   assert.equal(driverRef("e1", screen), "Saved");
   assert.equal(driverRef("e2", screen), "e2");
 });
+
+test("secrets are read from the environment, and the sign-in flow keeps its session", () => {
+  const trail = parseTrail(`
+config: { devices: { web: { driver: PLAYWRIGHT_NATIVE } } }
+trail:
+  - step: Type the password
+    recording:
+      web:
+        - web_type:
+            text: "{{env.APP_PASSWORD}}"
+            ref: 'textbox "Password"'
+  - step: Signed in
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: 'heading "Home"'
+`);
+  const login = emitTrail(trail, "trails/sign-in/trail.yaml", "sign-in", DEFAULTS, "login");
+  assert.equal(login.status, "emitted");
+  assert.match(login.spec!, /\.fill\(env\('APP_PASSWORD'\)\)/);
+  assert.match(login.spec!, /function env\(name: string\)/);
+  assert.match(login.spec!, /storageState\(\{ path: process\.env\.SOVA_AUTH_STATE!, indexedDB: true \}\)/);
+  assert.match(login.spec!, /test\.use\(\{ storageState: \{ cookies: \[\], origins: \[\] \} \}\)/);
+  assert.doesNotMatch(emitTrail(trail, "x", "x", DEFAULTS).spec!, /storageState/);
+});

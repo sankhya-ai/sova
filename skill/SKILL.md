@@ -97,10 +97,31 @@ Rules that decide whether the generated test is any good:
   needs. Never rely on a previous flow having run.
 - **Never wait for time.** If a step needs the page to settle, assert the thing you are
   waiting for with `see`.
-- **No secrets in a flow.** Use a throwaway test account. If the only credentials
-  available are real, stop and ask.
+- **No secrets in a flow.** Use a throwaway test account, and keep its password in
+  `sova/.env` (git-ignored), never on the command line: `text=env:APP_TEST_PASSWORD`
+  types the value and records only its name. If the only credentials available are
+  real, stop and ask.
 
 After `sova save <id>`, add `<id>` under its screen's `trails:` in `sova/screens.yaml`.
+
+### Screens behind sign-in
+
+Sign in once for the whole suite; do not repeat the sign-in steps in every flow.
+
+1. Put the test account in `sova/.env`: `APP_TEST_EMAIL=...`, `APP_TEST_PASSWORD=...`.
+   Ask the user for a test account if there is none. Never use a real person's.
+2. Drive the sign-in flow once, with `text=env:APP_TEST_EMAIL` and
+   `text=env:APP_TEST_PASSWORD`, end it by asserting something only a signed-in user
+   sees, and `sova save sign-in`.
+3. In `sova/config.json` set
+   `"login": { "trail": "sign-in", "anonymous": ["<ids of flows that must start signed out>"] }`
+   and run `sova emit`. The sign-in flow now runs first, and every other test starts
+   from its session. Flows listed in `anonymous` (the sign-in page's own tests) do not.
+4. Before driving signed-in flows, run `sova login`: it signs the driven browser in
+   without recording anything. The browser stays signed in from flow to flow.
+   `sova reset` gives you a clean, signed-out browser again.
+
+In CI the same names are set as environment variables.
 
 Reading the output of `sova save`:
 

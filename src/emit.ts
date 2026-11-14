@@ -27,9 +27,36 @@ function str(value: unknown): string {
   return typeof value === "string" ? value : value === undefined || value === null ? "" : String(value);
 }
 
+const ENV_TEMPLATE = /\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}/g;
+
+/** Marks a line that reads a secret, so the spec gets the `env` helper. */
+const ENV_CALL = "env(";
+
+/**
+ * Code for a recorded string. `{{env.NAME}}` is a secret the flow was driven with; it is read
+ * from the environment when the test runs, so it never sits in the trail or the spec.
+ */
+function textCode(call: ToolCall, value: string): string {
+  const rest = value.replace(ENV_TEMPLATE, "");
+  if (/\{\{.+?\}\}/.test(rest)) {
+    throw new Blocked(`${call.tool} uses a memory template (${value}); only {{env.NAME}} is supported`);
+  }
+  if (rest === value) return quote(value);
+  const whole = /^\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}$/.exec(value);
+  if (whole) return `${ENV_CALL}${quote(whole[1]!)})`;
+  const body = value
+    .split(/(\{\{env\.[A-Za-z_][A-Za-z0-9_]*\}\})/)
+    .map((part) => {
+      const match = /^\{\{env\.(.+)\}\}$/.exec(part);
+      return match ? `\${${ENV_CALL}${quote(match[1]!)})}` : part.replace(/[`\\$]/g, "\\$&");
+    })
+    .join("");
+  return `\`${body}\``;
+}
+
 function rejectTemplates(call: ToolCall, value: string): void {
   if (/\{\{.+?\}\}/.test(value)) {
-    throw new Blocked(`${call.tool} uses a memory template (${value}); templates are not supported yet`);
+    throw new Blocked(`${call.tool} uses a template (${value}) where only fixed text is supported`);
   }
 }
 
@@ -64,10 +91,9 @@ export function emitCall(call: ToolCall, config: Pick<SovaConfig, "baseURL">): C
     case "web_hover":
       return { lines: [`await ${requireLocator(call, warnings).code}.hover();`], warnings };
     case "web_type": {
-      const text = str(args.text);
-      rejectTemplates(call, text);
+      const text = textCode(call, str(args.text));
       const method = args.clearFirst === false ? "pressSequentially" : "fill";
-      return { lines: [`await ${requireLocator(call, warnings).code}.${method}(${quote(text)});`], warnings };
+      return { lines: [`await ${requireLocator(call, warnings).code}.${method}(${text});`], warnings };
     }
     case "web_selectOption": {
       const values = Array.isArray(args.values) ? args.values.map(str) : [];
@@ -108,16 +134,15 @@ export function emitCall(call: ToolCall, config: Pick<SovaConfig, "baseURL">): C
       return { lines: [`await expect(${requireLocator(call, warnings).code}).toBeVisible();`], warnings };
     case "web_verifyValue": {
       const locator = requireLocator(call, warnings).code;
-      const expected = str(args.expected);
-      rejectTemplates(call, expected);
+      const expected = textCode(call, str(args.expected));
       const type = str(args.type || "TEXT").toUpperCase();
-      if (type === "VALUE") return { lines: [`await expect(${locator}).toHaveValue(${quote(expected)});`], warnings };
+      if (type === "VALUE") return { lines: [`await expect(${locator}).toHaveValue(${expected});`], warnings };
       if (type === "ATTRIBUTE") {
         const attribute = str(args.attribute);
         if (attribute === "") throw new Blocked("web_verifyValue of type ATTRIBUTE recorded no attribute name");
-        return { lines: [`await expect(${locator}).toHaveAttribute(${quote(attribute)}, ${quote(expected)});`], warnings };
+        return { lines: [`await expect(${locator}).toHaveAttribute(${quote(attribute)}, ${expected});`], warnings };
       }
-      return { lines: [`await expect(${locator}).toContainText(${quote(expected)});`], warnings };
+      return { lines: [`await expect(${locator}).toContainText(${expected});`], warnings };
     }
     case "web_verifyListVisible": {
       const items = Array.isArray(args.items) ? args.items.map(str) : [];
@@ -152,6 +177,7 @@ export function emitTrail(
   sourceLabel: string,
   fallbackTitle: string,
   config: Pick<SovaConfig, "baseURL">,
+  role: "test" | "login" | "anonymous" = "test",
 ): EmitResult {
   const warnings: string[] = [];
   if (!trail.isWeb) return { spec: null, status: "skipped", reason: "not a web trail", warnings, assertions: 0 };
@@ -197,12 +223,36 @@ export function emitTrail(
   const title = trail.title ?? fallbackTitle;
   const tags = trail.tags.map((tag) => (tag.startsWith("@") ? tag : `@${tag}`));
   const details = tags.length > 0 ? `{ tag: [${tags.map(quote).join(", ")}] }, ` : "";
+  if (role === "login") {
+    // The session this flow leaves is what every other test starts from. Firebase and
+    // similar keep theirs in IndexedDB, so that is saved along with cookies and storage.
+    blocks.push(
+      "  await test.step('Keep the signed-in session for the other tests', async () => {\n" +
+        "    await page.context().storageState({ path: process.env.SOVA_AUTH_STATE!, indexedDB: true });\n" +
+        "  });",
+    );
+  }
+  const body = blocks.join("\n\n");
+  const helpers =
+    (body.includes(ENV_CALL)
+      ? "/** A secret the flow was driven with. Set it in the environment or in sova/.env. */\n" +
+        "function env(name: string): string {\n" +
+        "  const value = process.env[name];\n" +
+        "  if (value === undefined) throw new Error(`${name} is not set. Add it to sova/.env or the environment.`);\n" +
+        "  return value;\n" +
+        "}\n\n"
+      : "") +
+    (role === "login" || role === "anonymous"
+      ? "// Starts signed out, whatever session the rest of the suite shares.\n" +
+        "test.use({ storageState: { cookies: [], origins: [] } });\n\n"
+      : "");
   const spec =
     `${GENERATED_MARKER}${sourceLabel}\n` +
     "// Do not edit. Change the trail, then run `sova emit`.\n" +
     "import { expect, test } from '@playwright/test';\n\n" +
+    helpers +
     `test(${quote(title)}, ${details}async ({ page }) => {\n` +
-    blocks.join("\n\n") +
+    body +
     "\n});\n";
   return { spec, status: "emitted", warnings, assertions };
 }
@@ -247,11 +297,13 @@ export function emitAll(root: string, config: SovaConfig, write: boolean): EmitR
 
   for (const trailPath of walk(trailsDir, isTrailFile)) {
     const id = trailId(trailPath, trailsDir);
-    const specPath = join(specsDir, `${id}.spec.ts`);
+    const role = id === config.login?.trail ? "login" : config.login?.anonymous?.includes(id) ? "anonymous" : "test";
+    // The sign-in flow is a Playwright setup file: it runs before the tests that depend on it.
+    const specPath = join(specsDir, `${id}.${role === "login" ? "setup" : "spec"}.ts`);
     let result: EmitResult;
     try {
       const label = relative(root, trailPath).split(sep).join("/");
-      result = emitTrail(readTrail(trailPath), label, id, config);
+      result = emitTrail(readTrail(trailPath), label, id, config, role);
     } catch (error) {
       result = { spec: null, status: "blocked", reason: (error as Error).message, warnings: [], assertions: 0 };
     }
@@ -268,7 +320,7 @@ export function emitAll(root: string, config: SovaConfig, write: boolean): EmitR
     files.push({ trailPath, id, specPath, result, upToDate });
   }
 
-  const orphans = walk(specsDir, (path) => path.endsWith(".spec.ts")).filter(
+  const orphans = walk(specsDir, (path) => path.endsWith(".spec.ts") || path.endsWith(".setup.ts")).filter(
     (path) => !expected.has(path) && readFileSync(path, "utf8").startsWith(GENERATED_MARKER),
   );
   return { files, orphans };

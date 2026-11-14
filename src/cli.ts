@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { loadConfig } from "./config.js";
 import { loadScreens, screenCoverage, unclaimedTrails } from "./coverage.js";
-import { ACTIONS, act, discard, heal, look, open, save } from "./drive.js";
+import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./drive.js";
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
 import { lintFile, type Finding } from "./lint.js";
@@ -28,6 +28,9 @@ Usage: sova <command> [options]
   save <id>         Save what you just did as trails/<id>, close the browser
                     session, and generate the Playwright spec.
   discard           Abandon the flow in progress and close the browser session.
+  reset             Start over with a clean, signed-out browser.
+  login             Sign the driven browser in with the configured sign-in flow,
+                    so the flows you drive next start signed in.
   heal <id>         Replay a trail and repair steps the app has drifted from,
                     then regenerate its spec.
   emit [--check]    Turn every web trail into a Playwright spec. With --check,
@@ -198,6 +201,10 @@ async function main(): Promise<number> {
     }
     case "discard":
       return discard(root, loadConfig(root));
+    case "reset":
+      return reset(root, loadConfig(root));
+    case "login":
+      return login(root, loadConfig(root));
     case "heal": {
       const id = args[0];
       if (!id) throw new UserError("Usage: sova heal <id>");
