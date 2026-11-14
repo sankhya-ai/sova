@@ -78,6 +78,11 @@ sova save login                                    # writes the trail and the sp
   `scroll`, `back`, and the assertions `see`, `value`, `url`.
 - Refs come from `sova look` and change when the screen changes, so look again after
   any action that changes the page.
+- A ref must point at something a test can find again. `sova act` refuses an element
+  with no accessible name, or one of several with the same role and name, and says so.
+  Fix it at the source (a label, `aria-label` or `data-testid` in the app's code) or
+  target it with `ref="css=<selector>"`.
+- Made a wrong move? `sova discard` drops the flow in progress; start it again.
 - `-s` is required. Write what the step is for, as you would for a human reviewer. It
   becomes the step name in the test.
 

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { loadConfig } from "./config.js";
 import { loadScreens, screenCoverage, unclaimedTrails } from "./coverage.js";
-import { ACTIONS, act, heal, look, open, save } from "./drive.js";
+import { ACTIONS, act, discard, heal, look, open, save } from "./drive.js";
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
 import { lintFile, type Finding } from "./lint.js";
@@ -27,6 +27,7 @@ Usage: sova <command> [options]
                     Do or assert one thing. Run "sova actions" for the list.
   save <id>         Save what you just did as trails/<id>, close the browser
                     session, and generate the Playwright spec.
+  discard           Abandon the flow in progress and close the browser session.
   heal <id>         Replay a trail and repair steps the app has drifted from,
                     then regenerate its spec.
   emit [--check]    Turn every web trail into a Playwright spec. With --check,
@@ -195,6 +196,8 @@ async function main(): Promise<number> {
       for (const file of saved.changed) console.log(`saved    ${relative(root, file)}`);
       return emitCommand(root, false) ? 0 : 1;
     }
+    case "discard":
+      return discard(root, loadConfig(root));
     case "heal": {
       const id = args[0];
       if (!id) throw new UserError("Usage: sova heal <id>");

@@ -30,7 +30,7 @@ export class Blocked extends Error {}
  * Saved`) and records that text as the "name", so `getByRole(role, { name })` would find
  * nothing. They are matched on text instead.
  */
-const NAME_PROHIBITED_ROLES = new Set([
+export const NAME_PROHIBITED_ROLES = new Set([
   "paragraph", "strong", "emphasis", "generic", "code", "deletion", "insertion", "subscript",
   "superscript", "caption",
 ]);
@@ -40,7 +40,7 @@ const NAME_PROHIBITED_ROLES = new Set([
  * recorded "name" is the label when the author gave one and the printed text otherwise, and
  * the recording does not say which, so both are matched.
  */
-const AUTHOR_NAMED_ROLES = new Set([
+export const AUTHOR_NAMED_ROLES = new Set([
   "listitem", "status", "alert", "note", "blockquote", "time", "mark", "term", "definition",
 ]);
 

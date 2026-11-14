@@ -63,6 +63,7 @@ sova/playwright.config.mts      Playwright config for the generated suite
 | `sova open [url]` | Opens a page in the driven browser. |
 | `sova look` | Prints what is on screen, with a ref for each element. |
 | `sova act <action> ... -s "<step>"` | Does or asserts one thing. `sova actions` lists them. |
+| `sova discard` | Abandons the flow in progress and closes the browser session. |
 | `sova save <id>` | Saves the flow as `trails/<id>`, closes the browser session, generates the spec. |
 | `sova heal <id>` | Replays a trail, repairs small drift, regenerates the spec. |
 | `sova emit` | Turns every web trail into a spec. `--check` writes nothing and fails on stale or orphaned specs. |

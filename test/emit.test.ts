@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DEFAULTS } from "../src/config.js";
-import { actArgs, openArgs, resolveUrl } from "../src/drive.js";
+import { actArgs, driverRef, durableRef, openArgs, parseScreen, resolveUrl, withDurableRefs } from "../src/drive.js";
 import { emitCall, emitTrail, relativeToBase, trailId } from "../src/emit.js";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -265,7 +265,7 @@ test("driving commands translate to the driver's CLI and always carry a step", (
   assert.equal(resolveUrl("https://x.test/a", cfg.baseURL), "https://x.test/a");
   assert.deepEqual(openArgs(cfg, ["/login"]), [...device, "web_navigate", "url=http://localhost:3000/login", "-s", "Open /login"]);
   assert.deepEqual(
-    actArgs(cfg, ["type", "ref=e3", "text=ada@example.com", "-s", "Type the email"]),
+    actArgs(cfg, ["type", "ref=e3", "text=ada@example.com", "-s", "Type the email"], { e3: { role: "textbox", name: "Email" } }),
     [...device, "web_type", "ref=e3", "text=ada@example.com", "-s", "Type the email"],
   );
   assert.deepEqual(actArgs(cfg, ["back", "-s", "Go back"]), [...device, "web_navigate", "action=BACK", "-s", "Go back"]);
@@ -279,4 +279,55 @@ test("arguments with spaces or shell characters are quoted for Windows", () => {
   assert.equal(quoteForCmd('say "hi"'), '"say \\"hi\\""');
   assert.equal(quoteForCmd("a&b"), '"a&b"');
   assert.equal(quoteForCmd(""), '""');
+});
+
+test("snapshot refs become role-and-name selectors, or a clear refusal", () => {
+  const screen = parseScreen(
+    [
+      "### Screen",
+      "  main:",
+      '    [e2] link "Back to Tura"',
+      "    [e3] img",
+      '    [e7] heading "Say \"hi\""',
+      '    [e8] button "Delete"',
+      '    [e9] button "Delete"',
+    ].join("\n"),
+  );
+  assert.deepEqual(screen.e2, { role: "link", name: "Back to Tura" });
+  assert.equal(durableRef("e2", screen), 'link "Back to Tura"');
+  assert.equal(durableRef("e7", screen), 'heading "Say "hi""');
+  assert.equal(durableRef('css=[data-testid="x"]', screen), 'css=[data-testid="x"]');
+  assert.equal(durableRef('button "Save"', null), 'button "Save"');
+  assert.throws(() => durableRef("e3", screen), /no accessible name/);
+  assert.throws(() => durableRef("e8", screen), /one of 2 elements/);
+  assert.throws(() => durableRef("e44", screen), /not on the last screen/);
+  assert.throws(() => durableRef("e2", null), /sova look/);
+});
+
+test("a saved trail gets the selector each snapshot ref stood for", () => {
+  const trail = [
+    "trail:",
+    '  - step: "Click \\"Save\\""',
+    "    recording:",
+    "      web:",
+    "        - web_click:",
+    "            ref: e5",
+    '  - step: "See it"',
+    "    recording:",
+    "      web:",
+    "        - web_verifyElementVisible:",
+    "            ref: Saved",
+    "        - web_click:",
+    "            ref: e9",
+  ].join("\n");
+  const out = withDurableRefs(trail, [
+    { step: 'Click "Save"', sent: "e5", durable: 'button "Save"' },
+    { step: "See it", sent: "Saved", durable: 'alert "Saved"' },
+  ]);
+  assert.match(out, /web_click:\n\s+ref: "button \\"Save\\""/);
+  assert.match(out, /web_verifyElementVisible:\n\s+ref: "alert \\"Saved\\""/);
+  assert.match(out, /ref: e9$/);
+  const screen = { e1: { role: "alert", name: "Saved" }, e2: { role: "button", name: "Save" } };
+  assert.equal(driverRef("e1", screen), "Saved");
+  assert.equal(driverRef("e2", screen), "e2");
 });
