@@ -167,6 +167,25 @@ A test that fails the gate is not done. Read the failure, then decide which is t
 Never make the gate pass by deleting an assertion, adding a wait, or lowering
 `--repeat`.
 
+### Prove the tests can fail
+
+Passing tests only matter if they would fail when the app is wrong. List deliberate bugs in
+`sova/mutations.yaml` (read the code, break a validation, a redirect, a message):
+
+```yaml
+mutations:
+  - id: email-not-validated
+    file: src/signup/validate.ts
+    find: "if (!isEmail(email)) return error;"
+    replace: ""
+    note: an invalid email can sign up
+```
+
+If the app must be rebuilt to see a change, set `"mutationRebuild"` in `sova/config.json`.
+`sova mutate` applies each change, runs the suite, restores the file, and lists survivors.
+A survivor is either a missing test or a change that does nothing (another layer blocks it).
+Decide which, say so, and never weaken a test to get a kill.
+
 ## 4. Hand over
 
 Tell the user, briefly: screens covered / skipped (with reasons) / uncovered, anything

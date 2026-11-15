@@ -97,6 +97,7 @@ exists on npm, and `npx` would download that one if yours were missing.
 
 - `sova cases init` adds a checklist to every screen: valid, invalid, empty, boundary, permission, server-error. `sova coverage` counts cases, not just screens.
 - Tag each assertion with `[spec: <ref>]` or `[code]` (guessed from the code). `sova assertions` grades flows (smoke vs behavioural) and queues guessed ones for one confirmation: `sova confirm <id> --by <name>`.
+- `sova mutate` breaks the app on purpose (`sova/mutations.yaml`) and lists the changes no test noticed.
 - Plan and status: [docs/autonomous-qa-plan.md](docs/autonomous-qa-plan.md).
 
 ## How it works
