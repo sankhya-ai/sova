@@ -98,7 +98,11 @@ export function mutate(root: string, config: SovaConfig, mutations: Mutation[], 
       }
       const outcome = runOnce(root, config);
       if (outcome.failure) results.push({ mutation, status: "error", detail: outcome.failure });
-      else if (outcome.failed.length > 0) results.push({ mutation, status: "killed", detail: outcome.failed.join("; ") });
+      else if (outcome.failed.length > 0) {
+        // When the sign-in flow breaks, every test that depends on it is skipped, so that kill says little about the mutated behaviour.
+        const onlySetup = outcome.failed.every((name) => /\.setup\.ts/.test(name));
+        results.push({ mutation, status: "killed", detail: outcome.failed.join("; ") + (onlySetup ? " [only the sign-in flow ran; the other tests were skipped, so this kill is coarse]" : "") });
+      }
       else results.push({ mutation, status: "survived", detail: "every test still passed" });
     } finally {
       restore();
