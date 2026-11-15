@@ -6,6 +6,7 @@ import { caseCoverage, CASE_HELP, initCases, loadCases, summarizeCases } from ".
 import { loadScreens, screenCoverage, unclaimedTrails } from "./coverage.js";
 import { confirmTrailFile, gradeTrail, hasTrail, trailPath } from "./quality.js";
 import { readTrail } from "./trail.js";
+import { loadMutations, mutate } from "./mutate.js";
 import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./drive.js";
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
@@ -49,6 +50,8 @@ Usage: sova <command> [options]
                     that has none, so the whole app is planned in one pass.
   assertions        Grade each flow (behavioural or smoke) and show where every
                     assertion came from: [spec: ref] or guessed from code.
+  mutate [<id> ...] Break the app on purpose (sova/mutations.yaml), one change at a
+                    time, and report which changes no test noticed (survivors).
   confirm <id> --by <who>
                     A person confirmed a flow's guessed ([code]) assertions;
                     mark them as spec and regenerate the spec.
@@ -284,6 +287,19 @@ async function main(): Promise<number> {
     }
     case "assertions":
       return assertionsCommand(root);
+    case "mutate": {
+      const config = loadConfig(root);
+      const all = loadMutations(root);
+      const wanted = args.filter((a) => !a.startsWith("--"));
+      const chosen = wanted.length > 0 ? all.filter((m) => wanted.includes(m.id)) : all;
+      if (chosen.length === 0) throw new UserError("No mutations to run.");
+      const results = mutate(root, config, chosen, (line) => console.log(line));
+      const count = (status: string) => results.filter((r) => r.status === status).length;
+      console.log(`\n${count("killed")} killed, ${count("survived")} survived, ${count("invalid")} invalid, ${count("error")} errored of ${results.length}`);
+      for (const r of results.filter((x) => x.status !== "killed")) console.log(`  ${r.status}: ${r.mutation.id}${r.mutation.note ? ` - ${r.mutation.note}` : ""}${r.status === "survived" ? "" : ` (${r.detail})`}`);
+      if (count("survived") > 0) console.log("A survivor means no test protects that behaviour: add or strengthen a flow.");
+      return count("survived") + count("invalid") + count("error") === 0 ? 0 : 1;
+    }
     case "confirm": {
       const id = args[0];
       const by = flag(args, "--by");
