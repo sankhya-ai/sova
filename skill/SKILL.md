@@ -60,6 +60,18 @@ screens:
 payments, sending email or messages, deleting real data, changing credentials, third
 party OAuth. Offer the alternative (a sandbox account, a seeded record, a `skip:`).
 
+## 1b. Plan the cases
+
+Run `sova cases init`. Every screen gets a checklist: `valid`, `invalid`, `empty`, `boundary`,
+`permission`, `server-error`. For each one, decide from the code:
+
+- a flow covers it: `trail: <id>`;
+- it matters but you will not test it: `skip: <reason>`;
+- it cannot happen on this screen: `na: <reason>` (a read-only list has no invalid input).
+
+Never leave a case blank to make coverage look better. `sova coverage` prints cases missing,
+and fails on them when `sova/config.json` has `"requireCases": true`.
+
 ## 2. Drive each flow
 
 One flow per behaviour, not per screen: "log in", "log in with a wrong password",
@@ -95,6 +107,12 @@ Rules that decide whether the generated test is any good:
   ids that change between runs.
 - **Each flow starts from a fresh browser** (`sova save` closes it) and sets up what it
   needs. Never rely on a previous flow having run.
+- **Tag where the expected result came from.** End the `-s` text of each assertion with
+  `[spec: <ticket, doc, schema or the person who said so>]` or `[code]` when you only read it
+  in the app's code. `[code]` means it may be locking in a bug; `sova assertions` queues those
+  for one person to confirm (`sova confirm <id> --by <name>`).
+- **Prove more than the page loaded.** A flow that only opens a page and sees its heading is
+  graded `smoke`. Do something (type, click, submit) and assert the result.
 - **Never wait for time.** If a step needs the page to settle, assert the thing you are
   waiting for with `see`.
 - **No secrets in a flow.** Use a throwaway test account, and keep its password in
