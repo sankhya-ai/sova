@@ -25,6 +25,8 @@ export interface SovaConfig {
   workers?: number;
   /** How long an assertion waits, in milliseconds. Playwright's default is 5000. */
   expectTimeout?: number;
+  /** When true, `sova coverage` fails while a required case has no trail, skip or n/a reason. */
+  requireCases?: boolean;
 }
 
 /** Where secrets for flows live. Never committed; `sova init` git-ignores it. */
