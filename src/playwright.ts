@@ -9,7 +9,7 @@ export function playwrightCli(root: string): string {
   return join(root, "node_modules", "@playwright", "test", "cli.js");
 }
 
-function requirePlaywright(root: string, config: SovaConfig): void {
+export function requirePlaywright(root: string, config: SovaConfig): void {
   if (!existsSync(playwrightCli(root))) {
     throw new UserError(
       "@playwright/test is not installed here. Run `npm i -D @playwright/test && npx playwright install chromium`.",
@@ -137,4 +137,44 @@ export function measureStability(root: string, config: SovaConfig, repeat: numbe
     tests: [...tests.values()],
     failure: tests.size === 0 ? errors.join("\n") || "Playwright found no tests to run" : undefined,
   };
+}
+
+export interface RunOutcome {
+  passed: boolean;
+  /** Titles of the tests that failed, as `file > title`. */
+  failed: string[];
+  /** Set when Playwright could not run at all. */
+  failure?: string;
+}
+
+function collectFailures(suite: JsonSuite, into: string[]): void {
+  for (const spec of suite.specs ?? []) {
+    const bad = (spec.tests ?? []).some((test) => (test.results ?? []).some((r) => r.status && r.status !== "passed" && r.status !== "skipped"));
+    if (bad) into.push(`${spec.file ?? suite.file ?? ""} > ${spec.title}`);
+  }
+  for (const child of suite.suites ?? []) collectFailures(child, into);
+}
+
+/** Run the whole suite once, retries off, and say which tests failed. */
+export function runOnce(root: string, config: SovaConfig, maxFailures?: number): RunOutcome {
+  requirePlaywright(root, config);
+  const jsonPath = join(root, "sova", ".results", "once.json");
+  mkdirSync(join(root, "sova", ".results"), { recursive: true });
+  rmSync(jsonPath, { force: true });
+  const args = [playwrightCli(root), "test", "-c", config.playwrightConfig, "--retries=0", "--reporter=json"];
+  if (maxFailures) args.push(`--max-failures=${maxFailures}`);
+  const result = spawnSync(process.execPath, args, {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+    env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: jsonPath, PLAYWRIGHT_JSON_OUTPUT_NAME: jsonPath },
+  });
+  if (!existsSync(jsonPath)) {
+    const detail = `${result.stderr ?? ""}\n${result.stdout ?? ""}`.trim().split("\n").slice(-10).join("\n");
+    return { passed: false, failed: [], failure: detail || "Playwright produced no report" };
+  }
+  const report = JSON.parse(readFileSync(jsonPath, "utf8")) as { suites?: JsonSuite[] };
+  const failed: string[] = [];
+  for (const suite of report.suites ?? []) collectFailures(suite, failed);
+  return { passed: (result.status ?? 1) === 0 && failed.length === 0, failed };
 }

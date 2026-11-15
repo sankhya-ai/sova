@@ -27,6 +27,8 @@ export interface SovaConfig {
   expectTimeout?: number;
   /** When true, `sova coverage` fails while a required case has no trail, skip or n/a reason. */
   requireCases?: boolean;
+  /** Shell command that rebuilds the app after `sova mutate` edits a source file. Leave unset when the dev server reloads on its own. */
+  mutationRebuild?: string;
 }
 
 /** Where secrets for flows live. Never committed; `sova init` git-ignores it. */
