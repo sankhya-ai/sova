@@ -2,7 +2,10 @@
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { loadConfig } from "./config.js";
+import { caseCoverage, CASE_HELP, initCases, loadCases, summarizeCases } from "./cases.js";
 import { loadScreens, screenCoverage, unclaimedTrails } from "./coverage.js";
+import { confirmTrailFile, gradeTrail, hasTrail, trailPath } from "./quality.js";
+import { readTrail } from "./trail.js";
 import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./drive.js";
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
@@ -39,7 +42,16 @@ Usage: sova <command> [options]
   check [--repeat <n>]
                     The gate: emit is current, lint has no errors, and every
                     test passes <n> runs in a row (default 5) with no retries.
-  coverage          Compare sova/screens.yaml with the trails that exist.
+  coverage          Compare sova/screens.yaml with the trails that exist, screen by
+                    screen and case by case (valid, invalid, empty, boundary,
+                    permission, server-error).
+  cases init        Add the full case checklist to every screen in screens.yaml
+                    that has none, so the whole app is planned in one pass.
+  assertions        Grade each flow (behavioural or smoke) and show where every
+                    assertion came from: [spec: ref] or guessed from code.
+  confirm <id> --by <who>
+                    A person confirmed a flow's guessed ([code]) assertions;
+                    mark them as spec and regenerate the spec.
   run [-- <playwright args>]
                     Run the generated suite.
   report [--open]   Build the report for the last run (Allure when installed,
@@ -150,7 +162,46 @@ function coverageCommand(root: string): boolean {
   const count = (status: string) => rows.filter((row) => row.status === status).length;
   console.log(`\n${count("covered")} covered, ${count("uncovered")} uncovered, ${count("skipped")} skipped of ${rows.length} screens`);
   if (rows.length === 0) console.log("sova/screens.yaml lists no screens yet.");
-  return rows.length > 0 && count("uncovered") === 0;
+  const caseRows = caseCoverage(screens, loadCases(root), run);
+  const sum = summarizeCases(caseRows);
+  console.log(
+    `cases: ${sum.covered} covered, ${sum.skipped} skipped, ${sum.na} n/a, ${sum.missing} missing of ${sum.total} required (${caseRows.length === 0 ? "none" : "valid, invalid, empty, boundary, permission, server-error"} per screen)`,
+  );
+  if (sum.missing > 0) {
+    const missing = caseRows.filter((r) => r.status === "missing");
+    for (const row of missing.slice(0, 40)) console.log(`  missing  ${row.screen} / ${row.kind}: ${row.detail}  (${CASE_HELP[row.kind]})`);
+    if (missing.length > 40) console.log(`  ... and ${missing.length - 40} more`);
+    if (!config.requireCases) console.log('  (not failing: set "requireCases": true in sova/config.json to make missing cases fail coverage)');
+  }
+  const casesOk = !config.requireCases || sum.missing === 0;
+  return rows.length > 0 && count("uncovered") === 0 && casesOk;
+}
+
+function assertionsCommand(root: string): number {
+  const config = loadConfig(root);
+  const run = emitAll(root, config, false);
+  const tally = { behavioural: 0, smoke: 0, none: 0, spec: 0, code: 0, untagged: 0 };
+  const queue: string[] = [];
+  for (const file of run.files) {
+    if (file.result.status === "skipped") continue;
+    const quality = gradeTrail(readTrail(join(root, config.trailsDir, file.id, "trail.yaml")));
+    tally[quality.grade] += 1;
+    console.log(`${quality.grade.padEnd(11)} ${file.id}`);
+    for (const a of quality.assertions) {
+      tally[a.source] += 1;
+      const tag = a.source === "spec" ? `spec${a.ref ? `: ${a.ref}` : ""}` : a.source === "code" ? "guessed from code" : "untagged";
+      console.log(`            ${a.strength.padEnd(6)} [${tag}] ${a.text}`);
+      if (a.source !== "spec") queue.push(`${file.id}: ${a.text}`);
+    }
+  }
+  console.log(`\nflows: ${tally.behavioural} behavioural, ${tally.smoke} smoke only, ${tally.none} with no assertion`);
+  console.log(`assertions: ${tally.spec} from spec, ${tally.code} guessed from code, ${tally.untagged} untagged`);
+  if (queue.length > 0) {
+    console.log("\nNeeds one confirmation from a person (is this the right expected result?):");
+    for (const line of queue) console.log(`  ${line}`);
+    console.log("Confirm a flow with: sova confirm <id> --by <name>");
+  }
+  return tally.none === 0 ? 0 : 1;
 }
 
 async function main(): Promise<number> {
@@ -225,6 +276,24 @@ async function main(): Promise<number> {
     }
     case "coverage":
       return coverageCommand(root) ? 0 : 1;
+    case "cases": {
+      if (args[0] !== "init") throw new UserError("Usage: sova cases init");
+      const changed = initCases(root);
+      console.log(changed === 0 ? "Every screen already has a cases list." : `Added the case checklist to ${changed} screen(s) in sova/screens.yaml. Fill in each case: trail: <id>, skip: <reason> or na: <reason>.`);
+      return 0;
+    }
+    case "assertions":
+      return assertionsCommand(root);
+    case "confirm": {
+      const id = args[0];
+      const by = flag(args, "--by");
+      if (!id || !by) throw new UserError("Usage: sova confirm <trail id> --by <who confirmed the expected results>");
+      const config = loadConfig(root);
+      if (!hasTrail(root, config.trailsDir, id)) throw new UserError(`No trail ${id}.`);
+      const changed = confirmTrailFile(trailPath(root, config.trailsDir, id), by);
+      console.log(changed === 0 ? `${id} has no [code] assertions to confirm.` : `Confirmed ${changed} assertion(s) in ${id} (by ${by}).`);
+      return emitCommand(root, false) ? 0 : 1;
+    }
     case "run": {
       const separator = args.indexOf("--");
       return runTests(root, loadConfig(root), separator === -1 ? args : args.slice(separator + 1));
