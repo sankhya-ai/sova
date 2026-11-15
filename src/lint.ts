@@ -80,6 +80,12 @@ const LINE_RULES: LineRule[] = [
     message: "CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)",
   },
   {
+    rule: "unique-test-data",
+    severity: "warning",
+    pattern: /\.fill\(\s*['"`][^'"`\s]+@[^'"`\s]+\.[a-z]{2,}['"`]/i,
+    message: "a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes",
+  },
+  {
     rule: "no-positional-locator",
     severity: "warning",
     pattern: /\.(first|last)\(\)|\.nth\(/,

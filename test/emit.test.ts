@@ -356,3 +356,9 @@ trail:
   assert.match(login.spec!, /test\.use\(\{ storageState: \{ cookies: \[\], origins: \[\] \} \}\)/);
   assert.doesNotMatch(emitTrail(trail, "x", "x", DEFAULTS).spec!, /storageState/);
 });
+
+test("lint warns on a literal email typed into a field", () => {
+  const found = lintSource("test('x', async ({ page }) => {\n  await page.getByRole('textbox', { name: 'Email' }).fill('ada@example.com');\n  await expect(page).toHaveURL(/x/);\n});\n");
+  assert.ok(found.some((f) => f.rule === "unique-test-data" && f.severity === "warning"));
+  assert.ok(!lintSource("await page.getByRole('textbox').fill(env('APP_TEST_EMAIL'));\nexpect(1)").some((f) => f.rule === "unique-test-data"));
+});
