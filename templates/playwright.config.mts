@@ -54,7 +54,8 @@ export default defineConfig({
   reporter,
   use: {
     baseURL: process.env.SOVA_BASE_URL ?? sova.baseURL,
-    trace: 'retain-on-failure',
+    // Playwright's guidance: trace on the first retry in CI (not on every run); keep it on failure locally.
+    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
