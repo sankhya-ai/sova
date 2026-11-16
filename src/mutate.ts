@@ -57,6 +57,13 @@ function rebuild(root: string, config: SovaConfig): string | null {
   return result.status === 0 ? null : `rebuild failed: ${`${result.stderr}${result.stdout}`.trim().split("\n").slice(-4).join(" | ")}`;
 }
 
+/** Say who caught a mutation: the test's name if one did, the count if several did. */
+export function describeKill(detail: string): string {
+  const names = detail.replace(/ \[.*\]$/, "").split("; ").filter(Boolean);
+  const coarse = detail.includes("coarse") ? ", coarse" : "";
+  return names.length <= 1 ? `caught by ${names[0] ?? "?"}${coarse}` : `caught by ${names.length} tests, first: ${names[0]}${coarse}`;
+}
+
 /**
  * Break the app on purpose, one change at a time, and see whether the suite notices. The
  * suite must pass unchanged first. A mutation that no test fails on has survived: the tests
@@ -110,7 +117,7 @@ export function mutate(root: string, config: SovaConfig, mutations: Mutation[], 
       process.removeListener("SIGTERM", onSignal);
     }
     const last = results[results.length - 1]!;
-    log(`${last.status.padEnd(8)} ${mutation.id}${last.status === "killed" ? `  (caught by ${last.detail.split("; ")[0]})` : ""}`);
+    log(`${last.status.padEnd(8)} ${mutation.id}${last.status === "killed" ? `  (${describeKill(last.detail)})` : ""}`);
   }
   const restored = rebuild(root, config);
   if (restored) log(`warning: ${restored}`);
