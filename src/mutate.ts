@@ -57,6 +57,13 @@ function rebuild(root: string, config: SovaConfig): string | null {
   return result.status === 0 ? null : `rebuild failed: ${`${result.stderr}${result.stdout}`.trim().split("\n").slice(-4).join(" | ")}`;
 }
 
+/** Put the app's data back to its seed state, when the project says how. */
+export function resetApp(root: string, config: SovaConfig): string | null {
+  if (!config.mutationReset) return null;
+  const result = spawnSync(config.mutationReset, { cwd: root, shell: true, encoding: "utf8" });
+  return result.status === 0 ? null : `reset failed: ${`${result.stderr}${result.stdout}`.trim().split("\n").slice(-4).join(" | ")}`;
+}
+
 /** Say who caught a mutation: the test's name if one did, the count if several did. */
 export function describeKill(detail: string): string {
   const names = detail.replace(/ \[.*\]$/, "").split("; ").filter(Boolean);
@@ -72,6 +79,8 @@ export function describeKill(detail: string): string {
 export function mutate(root: string, config: SovaConfig, mutations: Mutation[], log: (line: string) => void): MutationResult[] {
   const buildError = rebuild(root, config);
   if (buildError) throw new UserError(buildError);
+  const baselineReset = resetApp(root, config);
+  if (baselineReset) throw new UserError(baselineReset);
   const baseline = runOnce(root, config);
   if (!baseline.passed) {
     throw new UserError(`The suite must pass before it is mutated. Failing: ${baseline.failed.join("; ") || baseline.failure}`);
@@ -101,6 +110,11 @@ export function mutate(root: string, config: SovaConfig, mutations: Mutation[], 
       const error = rebuild(root, config);
       if (error) {
         results.push({ mutation, status: "error", detail: error });
+        continue;
+      }
+      const resetError = resetApp(root, config);
+      if (resetError) {
+        results.push({ mutation, status: "error", detail: resetError });
         continue;
       }
       const outcome = runOnce(root, config);

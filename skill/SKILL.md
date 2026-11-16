@@ -182,6 +182,7 @@ mutations:
 ```
 
 If the app must be rebuilt to see a change, set `"mutationRebuild"` in `sova/config.json`.
+If a broken build can leave data behind (a duplicate account, a stuck rate limit), set `"mutationReset"` to a command that puts the data back to its seed state. It runs before the baseline and before every mutation, so one mutation cannot fail the next.
 `sova mutate` applies each change, runs the suite, restores the file, and lists survivors.
 A survivor is either a missing test or a change that does nothing (another layer blocks it).
 Decide which, say so, and never weaken a test to get a kill.
