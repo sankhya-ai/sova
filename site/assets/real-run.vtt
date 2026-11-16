@@ -1,0 +1,13 @@
+WEBVTT
+
+00:00.000 --> 00:09.000
+Sova drives the local demo: enter an incorrect password and assert that the rejection message is visible.
+
+00:09.000 --> 00:19.000
+sova save generates the Playwright test from the recorded flow. The unchanged app passes the gate.
+
+00:19.000 --> 00:28.000
+sova mutate removes the password condition on purpose. The rejection test catches this break.
+
+00:28.000 --> 00:31.920
+Sova restores the original source. The same test passes again with no retries.

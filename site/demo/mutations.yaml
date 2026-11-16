@@ -1,0 +1,6 @@
+mutations:
+  - id: accept-wrong-password
+    file: site/index.html
+    find: "&& document.getElementById('password').value === 'correct-horse'"
+    replace: "&& true"
+    note: Accept an incorrect password. The rejection test should fail.

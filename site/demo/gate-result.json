@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-16T08:57:36.884Z",
+  "repeat": 1,
+  "tests": [
+    {
+      "file": "reject-wrong-password.spec.ts",
+      "title": "Reject wrong password",
+      "runs": 1,
+      "passed": 1
+    }
+  ]
+}
