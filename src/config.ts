@@ -13,6 +13,14 @@ export interface SovaConfig {
   specsDir: string;
   /** The Playwright config `sova run` and `sova check` use. */
   playwrightConfig: string;
+  /**
+   * What the app runs on. "web" (the default) generates Playwright tests. "android" and "ios" keep
+   * Trailblaze's own recordings as the tests and replay them with `trailblaze run`, no model involved.
+   * Left unset it follows `device`: a device starting with android or ios means that platform.
+   */
+  platform?: "web" | "android" | "ios";
+  /** Mobile only: the app's package name (Android) or bundle id (iOS). `sova open` launches it. */
+  appId?: string;
   /** The browser device the driving commands (`open`, `look`, `act`) control. */
   device: string;
   /**
@@ -85,5 +93,10 @@ export function loadConfig(root: string): SovaConfig {
   } catch (error) {
     throw new UserError(`${CONFIG_PATH} is not valid JSON: ${(error as Error).message}`);
   }
-  return { ...DEFAULTS, ...(parsed as Partial<SovaConfig>) };
+  const config = { ...DEFAULTS, ...(parsed as Partial<SovaConfig>) };
+  // A phone project names its platform; the browser device default must not leak into its Trailblaze calls.
+  if ((config.platform === "android" || config.platform === "ios") && !config.device.startsWith(config.platform)) {
+    config.device = config.platform;
+  }
+  return config;
 }

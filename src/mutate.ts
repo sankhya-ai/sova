@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import type { SovaConfig } from "./config.js";
-import { runOnce } from "./playwright.js";
+import { runSuite } from "./mobile.js";
 import { UserError } from "./util.js";
 
 export const MUTATIONS_PATH = join("sova", "mutations.yaml");
@@ -81,7 +81,7 @@ export function mutate(root: string, config: SovaConfig, mutations: Mutation[], 
   if (buildError) throw new UserError(buildError);
   const baselineReset = resetApp(root, config);
   if (baselineReset) throw new UserError(baselineReset);
-  const baseline = runOnce(root, config);
+  const baseline = runSuite(root, config);
   if (!baseline.passed) {
     throw new UserError(`The suite must pass before it is mutated. Failing: ${baseline.failed.join("; ") || baseline.failure}`);
   }
@@ -117,7 +117,7 @@ export function mutate(root: string, config: SovaConfig, mutations: Mutation[], 
         results.push({ mutation, status: "error", detail: resetError });
         continue;
       }
-      const outcome = runOnce(root, config);
+      const outcome = runSuite(root, config);
       if (outcome.failure) results.push({ mutation, status: "error", detail: outcome.failure });
       else if (outcome.failed.length > 0) {
         // When the sign-in flow breaks, every test that depends on it is skipped, so that kill says little about the mutated behaviour.
