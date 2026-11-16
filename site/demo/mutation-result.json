@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-16T08:57:30.622Z",
+  "results": [
+    {
+      "id": "accept-wrong-password",
+      "file": "site/index.html",
+      "note": "Accept an incorrect password. The rejection test should fail.",
+      "status": "killed",
+      "detail": "reject-wrong-password.spec.ts > Reject wrong password"
+    }
+  ]
+}

@@ -86,3 +86,72 @@ document.querySelectorAll("[data-copy]").forEach((button) => {
     }
   });
 });
+
+const film = document.getElementById("demo-video");
+const chapters = [...document.querySelectorAll("[data-seek]")];
+const filmMedia = matchMedia("(max-width: 600px)");
+function chooseFilm() {
+  const time = film.currentTime || 0;
+  const paused = film.paused;
+  film.poster = filmMedia.matches
+    ? "assets/recording-poster-phone.webp"
+    : "assets/recording-poster.webp";
+  film.src = filmMedia.matches
+    ? "assets/real-run-phone.mp4"
+    : "assets/real-run.mp4";
+  film.addEventListener(
+    "loadedmetadata",
+    () => {
+      if (time > 0) film.currentTime = Math.min(time, film.duration || time);
+      if (!paused) film.play().catch(() => {});
+    },
+    { once: true },
+  );
+}
+chooseFilm();
+filmMedia.addEventListener("change", chooseFilm);
+const playFilm = document.querySelector(".film-play");
+const posterPlay = document.querySelector(".poster-play");
+posterPlay.hidden = false;
+posterPlay.addEventListener("click", () => {
+  film
+    .play()
+    .catch(() =>
+      notify("The recording could not play. Use Download film to watch it."),
+    );
+});
+film.addEventListener("play", () => {
+  posterPlay.hidden = true;
+});
+film.addEventListener("error", () => {
+  posterPlay.hidden = false;
+});
+playFilm.addEventListener("click", () => {
+  if (film.paused) film.play().catch(() => {});
+  else film.pause();
+});
+film.addEventListener("play", () => {
+  playFilm.textContent = "Pause recording Ⅱ";
+});
+film.addEventListener("pause", () => {
+  playFilm.textContent = "Play the 32s run ↗";
+});
+chapters.forEach((button) => {
+  button.addEventListener("click", () => {
+    film.currentTime = Number(button.dataset.seek);
+    film.play().catch(() => {});
+  });
+});
+film.addEventListener("timeupdate", () => {
+  const active = chapters.reduce(
+    (last, button) =>
+      film.currentTime >= Number(button.dataset.seek) ? button : last,
+    chapters[0],
+  );
+  chapters.forEach((button) =>
+    button.setAttribute("aria-pressed", String(button === active)),
+  );
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) film.pause();
+});

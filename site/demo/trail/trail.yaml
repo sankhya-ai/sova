@@ -1,0 +1,38 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: reject-wrong-password
+
+trail:
+  - step: "Open /"
+    recording:
+      web:
+        - web_navigate:
+            url: http://127.0.0.1:4173/
+
+  - step: "Enter the demo email"
+    recording:
+      web:
+        - web_type:
+            text: ada@example.com
+            ref: "textbox \"Email\""
+
+  - step: "Enter an incorrect password"
+    recording:
+      web:
+        - web_type:
+            text: wrong-password
+            ref: "textbox \"Password\""
+
+  - step: "Try to sign in"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Sign in\""
+
+  - step: "Wrong password is rejected [spec: demo login]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "alert \"Wrong email or password\""
