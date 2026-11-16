@@ -62,6 +62,8 @@ party OAuth. Offer the alternative (a sandbox account, a seeded record, a `skip:
 
 ## 1b. Plan the cases
 
+For a new app, read the `sova-planning` skill first: how to crawl, decide expected results, stay safe and prove the suite.
+
 Run `sova cases init`. Every screen gets a checklist: `valid`, `invalid`, `empty`, `boundary`,
 `permission`, `server-error`. For each one, decide from the code:
 

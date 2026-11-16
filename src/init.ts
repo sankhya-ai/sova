@@ -9,11 +9,13 @@ import { onPath, runTool } from "./util.js";
 
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SKILL_SOURCE = join(PACKAGE_ROOT, "skill");
+export const PLANNING_SKILL_SOURCE = join(PACKAGE_ROOT, "skill-planning");
 const CONFIG_TEMPLATE = join(PACKAGE_ROOT, "templates", "playwright.config.mts");
 const FIXTURES_TEMPLATE = join(PACKAGE_ROOT, "templates", "fixtures.ts");
 
 /** Where coding agents look for skills: Claude Code, then the shared location the others read. */
 export const SKILL_TARGETS = [join(".claude", "skills", "sova"), join(".agents", "skills", "sova")];
+const PLANNING_TARGETS = [join(".claude", "skills", "sova-planning"), join(".agents", "skills", "sova-planning")];
 
 const SCREENS_TEMPLATE = `# The app's screens, mapped from its routes and components.
 # \`sova coverage\` fails while a screen has no working trail and no \`skip:\` reason.
@@ -162,10 +164,15 @@ function createOnce(root: string, path: string, content: string): string {
 }
 
 export function installSkill(root: string): string[] {
-  return SKILL_TARGETS.map((target) => {
+  const lines = SKILL_TARGETS.map((target) => {
     cpSync(SKILL_SOURCE, join(root, target), { recursive: true });
     return `wrote    ${target}/SKILL.md`;
   });
+  for (const target of PLANNING_TARGETS) {
+    cpSync(PLANNING_SKILL_SOURCE, join(root, target), { recursive: true });
+    lines.push(`wrote    ${target}/SKILL.md`);
+  }
+  return lines;
 }
 
 /** Set a project up for sova. Safe to re-run: existing config and inventory are kept. */
