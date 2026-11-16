@@ -22,3 +22,15 @@ separately from trails: CTFd had 17 trails, 8 hand-written, 15 n/a, 8 server-err
 What a crawl gives you for free: required / typed / length-limited fields, signed-out
 redirects. What it cannot give: server-side rules, rate limits, duplicates, calculations.
 Those come from reading the source.
+
+## Driving tips found by a fresh run (FlaskBB)
+
+- A `required` input blocks the browser, so the empty case is usually a hand-written spec.
+  A `type=checkbox` the form defaults to ticked may not be ticked in the page: click it.
+- `sova act ... ref='textbox "Password"'` (role plus name from `sova look`) works and survives
+  page changes; plain `e7` refs do not.
+- `sova save` saves whatever you drove, even half a flow, with no prompt. Use `sova discard`.
+- Use `text=unique:name` for usernames: the result is `name-xxxxxx`, so check the app's
+  maximum length (FlaskBB: 20).
+- Never change the password of the account a sign-in flow uses; give password-change flows
+  their own role account (`login.as`).

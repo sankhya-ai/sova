@@ -9,7 +9,13 @@
   arrives with, which turned the saved regular-user session into an admin one.
 - **Shared accounts.** Two tests that change one account's server state race when run in
   parallel. Give each its own account, or run with `workers: 1`.
-- **Rate limits.** Keep them ON. CTFd keeps counters in the same cache as login sessions, so
+- **Rate limits.** Know where the counters live before you drive. FlaskBB limits the whole
+  /auth blueprint to 20 requests per 15 minutes per IP, in process memory: planning, driving and
+  three sign-ins hit HTTP 429, and nothing can clear a memory counter except restarting the app.
+  If the counters cannot be cleared between tests, raise the limit in the throwaway seed data
+  (FlaskBB: `AUTH_REQUESTS` in the settings table) and SAY SO in the report; the limit itself is
+  then untested here. Test it on a second instance with a low limit, or mark the case
+  `skip: limiter raised for the suite`. Otherwise keep it ON. CTFd keeps counters in the same cache as login sessions, so
   clear only the counter entries (integer values) between tests. Clearing the whole cache logs
   every saved session out.
 - **Unique data.** `{{unique.name@example.com}}` for emails and names a test creates.

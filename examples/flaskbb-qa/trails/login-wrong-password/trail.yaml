@@ -1,0 +1,45 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: login-wrong-password
+
+trail:
+  - step: "Open the login page"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/auth/login
+
+  - step: "Type a real username"
+    recording:
+      web:
+        - web_type:
+            text: alice
+            ref: textbox "Username or Email address"
+
+  - step: "Type a wrong password"
+    recording:
+      web:
+        - web_type:
+            text: not-the-password
+            ref: textbox "Password"
+
+  - step: "Press Login"
+    recording:
+      web:
+        - web_click:
+            ref: button "Login"
+
+  - step: "The error says the username or password is wrong [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.alert-danger
+            expected: Wrong username or password.
+
+  - step: "The user stays on the login page [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: /auth/login

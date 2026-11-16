@@ -1,0 +1,46 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: email-taken
+
+trail:
+  - step: "Open the email settings"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/user/settings/email
+
+  - step: "Type the current email"
+    recording:
+      web:
+        - web_type:
+            text: bob@example.com
+            ref: textbox "Old email address"
+
+  - step: "Type an email another member uses"
+    recording:
+      web:
+        - web_type:
+            text: alice@example.com
+            ref: textbox "New email address"
+
+  - step: "Repeat it"
+    recording:
+      web:
+        - web_type:
+            text: alice@example.com
+            ref: textbox "Confirm email address"
+
+  - step: "Press Save"
+    recording:
+      web:
+        - web_click:
+            ref: button "Save"
+
+  - step: "The error says the email is taken [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.invalid-feedback
+            expected: alice@example.com is already registered

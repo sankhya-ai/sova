@@ -1,0 +1,383 @@
+# Drafted by `sova plan` from the running app. Review it, then merge it into screens.yaml.
+screens:
+  - id: home
+    route: /
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-home-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: memberlist
+    route: /memberlist
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-memberlist-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-memberlist-empty
+      - kind: boundary
+        trail: auto-memberlist-boundary
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: search
+    route: /search
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-search-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-search-empty
+      - kind: boundary
+        trail: auto-search-boundary
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: auth-register
+    route: /auth/register
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-auth-register-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-auth-register-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: auth-reset-password
+    route: /auth/reset-password
+    trails: []
+    cases:
+      - kind: valid
+        skip: "destructive form (reset, delete or wipe): a person must decide how to
+          test it safely"
+      - kind: invalid
+        skip: "destructive form (reset, delete or wipe): a person must decide how to
+          test it safely"
+      - kind: empty
+        skip: "destructive form (reset, delete or wipe): a person must decide how to
+          test it safely"
+      - kind: boundary
+        skip: "destructive form (reset, delete or wipe): a person must decide how to
+          test it safely"
+      - kind: permission
+        skip: "destructive form (reset, delete or wipe): a person must decide how to
+          test it safely"
+      - kind: server-error
+        skip: "destructive form (reset, delete or wipe): a person must decide how to
+          test it safely"
+  - id: auth-activate
+    route: /auth/activate
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-auth-activate-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-auth-activate-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: category-1-my-category
+    route: /category/1-my-category
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-category-1-my-category-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: forum-1-welcome
+    route: /forum/1-welcome
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-forum-1-welcome-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: topic-1-welcome
+    route: /topic/1-welcome
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-topic-1-welcome-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-admin
+    route: /user/admin
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-admin-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: who-is-online
+    route: /who-is-online
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-who-is-online-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-bob
+    route: /user/bob
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-bob-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-alice
+    route: /user/alice
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-alice-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-mod1
+    route: /user/mod1
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-mod1-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-admin-topics
+    route: /user/admin/topics
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-admin-topics-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-admin-posts
+    route: /user/admin/posts
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-admin-posts-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-bob-topics
+    route: /user/bob/topics
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-bob-topics-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-bob-posts
+    route: /user/bob/posts
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-bob-posts-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-alice-topics
+    route: /user/alice/topics
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-alice-topics-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-alice-posts
+    route: /user/alice/posts
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-alice-posts-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-mod1-topics
+    route: /user/mod1/topics
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-mod1-topics-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user-mod1-posts
+    route: /user/mod1/posts
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-mod1-posts-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page

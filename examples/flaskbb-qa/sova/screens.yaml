@@ -1,0 +1,162 @@
+screens:
+  - id: login
+    route: /auth/login
+    source: flaskbb/auth/views.py
+    trails: [ login-wrong-password ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: register
+    route: /auth/register
+    source: flaskbb/auth/views.py
+    trails:
+      [
+        register-valid,
+        register-taken-username,
+        register-forbidden-username,
+        register-username-too-short,
+        register-password-mismatch,
+        register-taken-email
+      ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: settings-password
+    route: /user/settings/password
+    source: flaskbb/user/views.py
+    trails: [ password-wrong-old, password-same-as-old ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: settings-email
+    route: /user/settings/email
+    source: flaskbb/user/views.py
+    trails: [ email-wrong-old, email-taken ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: settings-user-details
+    route: /user/settings/user-details
+    source: flaskbb/user/views.py
+    trails: [ details-save ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: new-topic
+    route: /1-welcome/topic/new
+    source: flaskbb/forum/views.py
+    trails: [ topic-new ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: edit-post
+    route: /post/1/edit
+    source: flaskbb/forum/views.py
+    trails: [ post-edit-forbidden ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: admin-overview
+    route: /admin/
+    source: flaskbb/management/views.py
+    trails: [ admin-panel-forbidden ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""
+  - id: admin-add-user
+    route: /admin/users/add
+    source: flaskbb/management/views.py
+    trails: [ admin-add-user-taken ]
+    cases:
+      - kind: valid
+        trail: ""
+      - kind: invalid
+        trail: ""
+      - kind: empty
+        trail: ""
+      - kind: boundary
+        trail: ""
+      - kind: permission
+        trail: ""
+      - kind: server-error
+        trail: ""

@@ -18,3 +18,14 @@ survives. Gate for a draft that only opens a page: it is a smoke check, say so.
 
 Pages a crawl calls "valid" with made-up input pass with no check of the result. Add the
 real expected outcome or do not count the draft as coverage.
+
+## Asserting messages
+
+`sova look` lists only named controls. Flash messages, alert boxes and field errors are plain
+text and do not show up in it. Assert them by selector, once you have the exact string from the
+source: `sova act value ref="css=.alert-danger" expected="Wrong username or password." -s "..."`.
+In FlaskBB field errors are `.invalid-feedback`, flashes `.alert-success` / `.alert-danger`.
+`sova save` warns that a CSS selector is weak; for message text that is the accepted choice.
+If two alerts can be on screen, the first one wins: check the page before asserting the second.
+A refusal that redirects (FlaskBB sends a member who opens /admin/ back to / with a flash) is
+asserted with `url` plus the flash text, not with a 403 page.

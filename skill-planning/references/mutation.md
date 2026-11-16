@@ -25,3 +25,9 @@ Read the output:
 Run `sova mutate` alone. Never next to `sova check`. Pick an app whose source you can rebuild
 on your machine: Gitea (Go) could not be rebuilt on a 2GB box, so only 1 mutation counted there.
 CTFd (Python) rebuilds in seconds.
+
+A multi-line `find` must match the file byte for byte, indentation included. A miss is reported
+as `invalid ... text to replace was not found` and the mutation never ran: it is not a survivor and
+proves nothing. Copy the lines with `sed -n` instead of retyping them. `sova mutate` also stops at the
+baseline when stale specs exist (e.g. `sign-in.spec.ts` written before `login.trail` was set;
+`sova emit` calls them orphans): delete them first. FlaskBB: 12 mutations, about 25 s each.

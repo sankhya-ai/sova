@@ -1,0 +1,46 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: password-same-as-old
+
+trail:
+  - step: "Open the password settings"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/user/settings/password
+
+  - step: "Type the old password"
+    recording:
+      web:
+        - web_type:
+            text: Bob-Pass-123
+            ref: textbox "Password"
+
+  - step: "Type the new password"
+    recording:
+      web:
+        - web_type:
+            text: Bob-Pass-123
+            ref: textbox "New password"
+
+  - step: "Repeat the new password"
+    recording:
+      web:
+        - web_type:
+            text: Bob-Pass-123
+            ref: textbox "Confirm new password"
+
+  - step: "Press Save"
+    recording:
+      web:
+        - web_click:
+            ref: button "Save"
+
+  - step: "The error says the new password must differ [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.invalid-feedback
+            expected: New password must be different

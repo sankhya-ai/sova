@@ -1,0 +1,25 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: post-edit-forbidden
+
+trail:
+  - step: "Open the edit form of the admin's post as another member"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/post/1/edit
+
+  - step: "The member is sent back to the topic [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: /topic/1
+
+  - step: "The refusal message is shown [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.alert-danger
+            expected: You are not allowed to edit that post
