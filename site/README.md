@@ -93,3 +93,7 @@ honest but less impressive than a longer realistic app workflow. Phone terminal
 text is still better fullscreen or as a downloaded film/transcript. The page has
 a stronger identity, but it is still an early product page, not a finished brand
 system or a claim to award-level execution.
+
+## Credits
+
+Sova is built on [Trailblaze](https://github.com/block/trailblaze) by Block.
