@@ -5,6 +5,7 @@ import { ENV_PATH, loadEnv, type SovaConfig } from "./config.js";
 import { isTrailFile } from "./emit.js";
 import { readTrail } from "./trail.js";
 import { AUTHOR_NAMED_ROLES, NAME_PROHIBITED_ROLES } from "./locator.js";
+import { isMobile, MOBILE_ACTIONS, mobileDevice } from "./mobile.js";
 import { onPath, runTool, UserError, walk } from "./util.js";
 
 /**
@@ -132,6 +133,11 @@ export function resolveUrl(target: string, baseURL: string): string {
 /** The Trailblaze arguments for `sova open <url>`. */
 export function openArgs(config: SovaConfig, args: string[]): string[] {
   const { step, rest } = takeStep(args);
+  if (isMobile(config)) {
+    const appId = rest[0] ?? config.appId;
+    if (!appId) throw new UserError("Which app? Pass the package name or bundle id, or set appId in sova/config.json.");
+    return ["tool", "-d", mobileDevice(config), "launchApp", `appId=${appId}`, "-s", step ?? `Launch ${appId}`];
+  }
   const target = rest[0] ?? "/";
   const url = resolveUrl(target, config.baseURL);
   return ["tool", "-d", config.device, "web_navigate", `url=${url}`, "-s", step ?? `Open ${target}`];
@@ -145,14 +151,16 @@ export function actArgs(
 ): string[] {
   const [name, ...others] = args;
   if (!name) throw new UserError("Usage: sova act <action> [key=value ...] -s \"<what this step is for>\"\nRun `sova actions` for the list.");
-  const tool = ACTIONS[name]?.tool ?? name;
+  const phone = isMobile(config);
+  const tool = (phone ? MOBILE_ACTIONS : ACTIONS)[name]?.tool ?? name;
   if (others.includes("--help") || others.includes("-h")) return ["tool", tool, "--help"];
   const { step, rest } = takeStep(others);
   const text = requireStep(step, `sova act click ref=e5 -s "Click Sign in"`);
-  const extra = name === "back" ? ["action=BACK"] : [];
-  // Refuse a ref no test could find again before the driver acts on it.
-  for (const arg of rest) if (arg.startsWith("ref=")) durableRef(arg.slice(4), screen);
-  return ["tool", "-d", config.device, tool, ...extra, ...rest, "-s", text];
+  const extra = name === "back" && !phone ? ["action=BACK"] : [];
+  // Refuse a ref no test could find again before the driver acts on it. (A phone's refs are content
+  // hashes the recording turns into a selector itself, so there is nothing to translate.)
+  if (!phone) for (const arg of rest) if (arg.startsWith("ref=")) durableRef(arg.slice(4), screen);
+  return ["tool", "-d", phone ? mobileDevice(config) : config.device, tool, ...extra, ...rest, "-s", text];
 }
 
 export function open(root: string, config: SovaConfig, args: string[]): number {
@@ -160,7 +168,7 @@ export function open(root: string, config: SovaConfig, args: string[]): number {
 }
 
 export function look(root: string, config: SovaConfig): number {
-  return trailblaze(root, ["snapshot", "-d", config.device]);
+  return trailblaze(root, ["snapshot", "-d", isMobile(config) ? mobileDevice(config) : config.device]);
 }
 
 /**

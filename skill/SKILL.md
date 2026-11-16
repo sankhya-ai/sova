@@ -217,3 +217,19 @@ For CI: `npx --no-install sova emit --check && npx --no-install sova run`.
 
 When a flow creates a record, type its unique field with `text=unique:<value>` (for example `text=unique:ada@example.com`). The spec makes it unique per run. Shared setup, page objects and cleanup go in `sova/fixtures.ts`; register what a test created with the `cleanup` fixture.
 When the app shows an error, assert the error text. Only fall back to "still on the URL" when nothing is shown.
+
+## Phone apps (Android, iOS)
+
+If `sova/config.json` has `"platform": "android"` or `"ios"`, there is no Playwright and no
+generated spec: the Trailblaze recording in `trails/<id>/trail.yaml` is the test, and the gate replays
+it with `trailblaze run --llm none` (no model). Same loop as above (`sova open`, `look`, `act`,
+`save`, `check`), with these differences:
+
+- `sova open` launches `appId`. Refs from `sova look` are content hashes (`y778`); `sova act tap ref=y778 -s "..."`.
+- Assert with a recorded `assertVisibleBySelector`, never a bare `verify:` step (that needs a model).
+- Do not tap by coordinates (`tapOnPoint`); `sova lint` blocks it.
+- `sova emit` writes nothing; it says which trails are ready or blocked. `sova check` needs a connected
+  device or emulator and says so if there is none.
+- `mutationRebuild` must rebuild and reinstall the app on the device.
+- This path has not been run on a device yet. If something fails in a way the docs do not explain,
+  tell the user plainly. Details: docs/mobile.md in the sova repo.

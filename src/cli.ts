@@ -12,19 +12,24 @@ import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./d
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
 import { lintFile, type Finding } from "./lint.js";
-import { report, measureStability, runTests } from "./playwright.js";
+import { report, runTests } from "./playwright.js";
+import { isMobile, lintMobileTrail, measureSuite, MOBILE_ACTIONS, platformOf, runArgs } from "./mobile.js";
+import type { MobilePlatform } from "./trail.js";
 import { GATE_RESULTS, MUTATION_RESULTS, saveResults, summaryCommand } from "./summary.js";
-import { UserError, walk } from "./util.js";
+import { runTool, UserError, walk } from "./util.js";
 
 const HELP = `sova: explored trails in, gated Playwright tests out.
 
 Usage: sova <command> [options]
 
   init [--base-url <url>] [--start <command>] [--no-install]
+       [--platform android|ios --app-id <package or bundle id>]
                     One-step setup: detects how the app starts, installs
                     Playwright, Chromium and Trailblaze if missing, and
                     registers the skill for Claude Code, Codex, Cursor and
-                    other agents. Safe to re-run.
+                    other agents. Safe to re-run. With --platform android|ios it
+                    sets up a phone app instead: no Playwright, the Trailblaze
+                    recordings are the tests.
   doctor            Check that everything sova needs is installed.
   open [<url or path>] [-s "<step>"]
                     Open a page in the driven browser (default: the app's root).
@@ -121,9 +126,37 @@ function emitCommand(root: string, checkOnly: boolean): boolean {
   return ok;
 }
 
+/** On a phone the trails are the tests, so the trails are what gets linted. */
+function lintMobileCommand(root: string, config: ReturnType<typeof loadConfig>): number {
+  const platform = platformOf(config) as MobilePlatform;
+  const dir = join(root, config.trailsDir);
+  let errors = 0;
+  let warnings = 0;
+  let count = 0;
+  for (const path of walk(dir, (p) => p.endsWith("trail.yaml"))) {
+    count += 1;
+    let findings;
+    try {
+      findings = lintMobileTrail(readTrail(path), platform);
+    } catch (error) {
+      console.log(`  ${relative(root, path)}  error  not-a-trail: ${(error as Error).message}`);
+      errors += 1;
+      continue;
+    }
+    for (const f of findings) {
+      console.log(`  ${relative(root, path)}  step ${f.step || "-"}  ${f.severity}  ${f.rule}: ${f.message}`);
+      if (f.severity === "error") errors += 1;
+      else warnings += 1;
+    }
+  }
+  console.log(`${count} trails, ${errors} errors, ${warnings} warnings`);
+  return errors;
+}
+
 /** Lint every spec in the specs directory. Returns the number of errors. */
 function lintCommand(root: string): number {
   const config = loadConfig(root);
+  if (isMobile(config)) return lintMobileCommand(root, config);
   const specs = walk(join(root, config.specsDir), (path) => path.endsWith(".spec.ts"));
   let errors = 0;
   let warnings = 0;
@@ -138,16 +171,17 @@ function lintCommand(root: string): number {
 }
 
 function checkCommand(root: string, repeat: number): boolean {
-  console.log("1/3 specs match their trails");
+  console.log(isMobile(loadConfig(root)) ? "1/3 trails are ready to replay on a device" : "1/3 specs match their trails");
   if (!emitCommand(root, true)) return false;
 
-  console.log("\n2/3 Playwright practices");
+  console.log(isMobile(loadConfig(root)) ? "\n2/3 trail practices" : "\n2/3 Playwright practices");
   if (lintCommand(root) > 0) return false;
 
   console.log(repeat === 1 ? "\n3/3 run the suite once, no retries" : `\n3/3 stability: ${repeat} runs each, no retries`);
-  const report = measureStability(root, loadConfig(root), repeat);
+  const config = loadConfig(root);
+  const report = measureSuite(root, config, repeat);
   if (report.failure) {
-    console.log(`Playwright could not run the suite:\n${report.failure}`);
+    console.log(`${isMobile(config) ? "The suite could not run" : "Playwright could not run the suite"}:\n${report.failure}`);
     return false;
   }
   saveResults(root, GATE_RESULTS, { at: new Date().toISOString(), repeat, tests: report.tests });
@@ -160,7 +194,8 @@ function checkCommand(root: string, repeat: number): boolean {
   }
   console.log(stable ? "\nGate passed." : "\nGate failed: fix or re-record the tests marked FAILED or FLAKY.");
   summaryCommand(root);
-  console.log("report   sova/.results/html/index.html (Playwright's report: traces, screenshots, video of failures; open with `sova report --open`)");
+  if (isMobile(config)) console.log("sessions ~/.trailblaze/logs (per-step screenshots, video, device log of every run; `trailblaze app` opens the viewer)");
+  else console.log("report   sova/.results/html/index.html (Playwright's report: traces, screenshots, video of failures; open with `sova report --open`)");
   return stable;
 }
 
@@ -197,6 +232,7 @@ function coverageCommand(root: string): boolean {
 
 function assertionsCommand(root: string): number {
   const config = loadConfig(root);
+  if (isMobile(config)) throw new UserError("`sova assertions` grades web trails. On a phone, `sova lint` reports trails that assert nothing.");
   const run = emitAll(root, config, false);
   const tally = { behavioural: 0, smoke: 0, none: 0, spec: 0, code: 0, untagged: 0 };
   const queue: string[] = [];
@@ -228,7 +264,11 @@ async function main(): Promise<number> {
 
   switch (command) {
     case "init": {
+      const platform = flag(args, "--platform");
+      if (platform !== undefined && platform !== "android" && platform !== "ios" && platform !== "web") throw new UserError("--platform must be web, android or ios");
       const log = init(root, {
+        platform: platform === "android" || platform === "ios" ? platform : undefined,
+        appId: flag(args, "--app-id"),
         baseURL: flag(args, "--base-url"),
         startCommand: flag(args, "--start"),
         install: !args.includes("--no-install"),
@@ -253,7 +293,8 @@ async function main(): Promise<number> {
     case "act":
       return act(root, loadConfig(root), args);
     case "actions": {
-      for (const [name, action] of Object.entries(ACTIONS)) console.log(`  ${name.padEnd(7)} ${action.use}`);
+      const shown = isMobile(loadConfig(root)) ? MOBILE_ACTIONS : ACTIONS;
+      for (const [name, action] of Object.entries(shown)) console.log(`  ${name.padEnd(7)} ${action.use}`);
       console.log('\nEvery action needs -s "<what this step is for>". Refs come from `sova look`.');
       console.log("`sova act <action> --help` prints every argument an action takes.");
       return 0;
@@ -333,9 +374,19 @@ async function main(): Promise<number> {
     }
     case "run": {
       const separator = args.indexOf("--");
+      const runConfig = loadConfig(root);
+      if (isMobile(runConfig)) {
+        const extra = separator === -1 ? [] : args.slice(separator + 1);
+        const target = join(root, runConfig.trailsDir);
+        return runTool("trailblaze", [...runArgs(runConfig, target), ...extra], { cwd: root, stdio: "inherit" }).status ?? 1;
+      }
       return runTests(root, loadConfig(root), separator === -1 ? args : args.slice(separator + 1));
     }
     case "report":
+      if (isMobile(loadConfig(root))) {
+        console.log("Each run's screenshots, video and device log are under ~/.trailblaze/logs. `trailblaze app` opens the viewer. `sova summary` writes the one-page summary.");
+        return 0;
+      }
       return report(root, loadConfig(root), args.includes("--open"));
     case "skill": {
       if (args[0] === "show") {

@@ -1,3 +1,4 @@
+import { deviceConnected, isMobile, platformOf } from "./mobile.js";
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -38,6 +39,10 @@ const GITIGNORE_LINES = ["sova/.results/", "sova/.auth/", "sova/.env", "sova/rep
 export interface InitOptions {
   baseURL?: string;
   startCommand?: string;
+  /** "android" or "ios" sets the project up for a phone app instead of the web. */
+  platform?: "android" | "ios";
+  /** Mobile: the app's package name or bundle id. */
+  appId?: string;
   /** Install missing dependencies (Playwright, a browser, Trailblaze). Default true. */
   install?: boolean;
 }
@@ -101,6 +106,13 @@ export const DRIVER_INSTALL =
   process.platform === "win32"
     ? "irm https://raw.githubusercontent.com/block/trailblaze/main/install.ps1 | iex   (PowerShell; needs Java 17+)"
     : "curl -fsSL https://raw.githubusercontent.com/block/trailblaze/main/install.sh | bash   (needs Java 17+)";
+
+/** A phone project needs only Trailblaze; sova does not install it for the user without Homebrew. */
+function installMobileDependencies(): string[] {
+  if (onPath("trailblaze")) return [];
+  if (onPath("brew")) return [run(process.cwd(), "brew", ["install", "block/tap/trailblaze"]) ? "installed trailblaze" : "FAILED   brew install block/tap/trailblaze"];
+  return [`MISSING  Trailblaze. Install it with:\n         ${DRIVER_INSTALL}`];
+}
 
 /** Install what is missing. Returns one log line per thing attempted. */
 function installDependencies(root: string): string[] {
@@ -179,25 +191,32 @@ export function installSkill(root: string): string[] {
 export function init(root: string, options: InitOptions): string[] {
   const log: string[] = [];
   const detected = detectApp(root);
+  const mobile = options.platform !== undefined;
   const config: SovaConfig = {
     ...DEFAULTS,
-    ...detected,
+    ...(mobile ? {} : detected),
+    ...(mobile ? { platform: options.platform, device: options.platform!, ...(options.appId ? { appId: options.appId } : {}) } : {}),
     ...(options.baseURL ? { baseURL: options.baseURL } : {}),
     ...(options.startCommand ? { startCommand: options.startCommand } : {}),
   };
   const configExisted = existsSync(join(root, CONFIG_PATH));
   log.push(createOnce(root, CONFIG_PATH, `${JSON.stringify(config, null, 2)}\n`));
   log.push(createOnce(root, SCREENS_PATH, SCREENS_TEMPLATE));
-  log.push(createOnce(root, config.playwrightConfig, readFileSync(CONFIG_TEMPLATE, "utf8")));
-  log.push(createOnce(root, join("sova", "fixtures.ts"), readFileSync(FIXTURES_TEMPLATE, "utf8")));
+  if (!mobile) {
+    log.push(createOnce(root, config.playwrightConfig, readFileSync(CONFIG_TEMPLATE, "utf8")));
+    log.push(createOnce(root, join("sova", "fixtures.ts"), readFileSync(FIXTURES_TEMPLATE, "utf8")));
+  }
   log.push(...installSkill(root));
   log.push(linkFromAgentsFile(root));
-  if (!configExisted) {
+  if (!configExisted && mobile) {
+    log.push(`platform ${options.platform}${options.appId ? `, app ${options.appId}` : " (set appId in sova/config.json)"}`);
+    log.push("tests    Trailblaze recordings replayed with `trailblaze run --llm none`; no Playwright");
+  } else if (!configExisted) {
     const guessed = !options.baseURL && !detected.baseURL;
     log.push(`app      ${config.baseURL}${guessed ? " (a guess; correct baseURL in sova/config.json)" : ""}`);
     log.push(`start    ${config.startCommand || "(none; the app must already be running)"}`);
   }
-  if (options.install !== false) log.push(...installDependencies(root));
+  if (options.install !== false) log.push(...(mobile ? installMobileDependencies() : installDependencies(root)));
 
   const gitignore = join(root, ".gitignore");
   const current = existsSync(gitignore) ? readFileSync(gitignore, "utf8") : "";
@@ -220,6 +239,13 @@ export function init(root: string, options: InitOptions): string[] {
   return log;
 }
 
+function javaMajor(): number {
+  const result = spawnSync("java", ["-version"], { encoding: "utf8" });
+  const match = /version "(\d+)(?:\.(\d+))?/.exec(`${result.stderr ?? ""}${result.stdout ?? ""}`);
+  if (!match) return 0;
+  return match[1] === "1" ? Number(match[2] ?? 0) : Number(match[1]);
+}
+
 export interface DoctorCheck {
   name: string;
   ok: boolean;
@@ -237,20 +263,33 @@ export async function doctor(root: string): Promise<DoctorCheck[]> {
     ok: onPath("trailblaze"),
     fix: onPath("brew") ? "sova init" : DRIVER_INSTALL,
   });
-  checks.push({
-    name: "@playwright/test installed (needed to run tests)",
-    ok: existsSync(join(root, "node_modules", "@playwright", "test")),
-    fix: "npm i -D @playwright/test && npx playwright install chromium",
-  });
   const hasConfig = existsSync(join(root, CONFIG_PATH));
+  const early = hasConfig ? ({ ...DEFAULTS, ...JSON.parse(readFileSync(join(root, CONFIG_PATH), "utf8")) } as SovaConfig) : null;
+  const phone = early !== null && isMobile(early) ? (platformOf(early) as "android" | "ios") : null;
+  if (phone === null) {
+    checks.push({
+      name: "@playwright/test installed (needed to run tests)",
+      ok: existsSync(join(root, "node_modules", "@playwright", "test")),
+      fix: "npm i -D @playwright/test && npx playwright install chromium",
+    });
+  } else {
+    checks.push({ name: "Java 17 or newer (Trailblaze needs it)", ok: javaMajor() >= 17, fix: "Install a JDK 17+ and set JAVA_HOME." });
+    if (phone === "android") {
+      checks.push({ name: "adb on PATH (Android SDK platform-tools)", ok: onPath("adb"), fix: "Install the Android SDK platform-tools and add them to PATH." });
+    } else {
+      checks.push({ name: "Xcode command line tools (xcrun simctl); iOS needs a Mac", ok: process.platform === "darwin" && onPath("xcrun"), fix: "Run on macOS with Xcode installed." });
+    }
+    const connected = deviceConnected(phone);
+    checks.push({ name: `an ${phone === "android" ? "Android" : "iOS"} device or emulator is connected to Trailblaze`, ok: connected === true, fix: phone === "android" ? "Start an emulator or plug in a device, then run `trailblaze device list`." : "Boot a simulator (xcrun simctl boot ...), then run `trailblaze device list`." });
+  }
   checks.push({ name: CONFIG_PATH, ok: hasConfig, fix: "sova init" });
   checks.push({
     name: "agent skill installed",
     ok: SKILL_TARGETS.some((target) => existsSync(join(root, target, "SKILL.md"))),
     fix: "sova init",
   });
-  if (hasConfig) {
-    const config = { ...DEFAULTS, ...JSON.parse(readFileSync(join(root, CONFIG_PATH), "utf8")) } as SovaConfig;
+  if (hasConfig && phone === null) {
+    const config = early!;
     let reachable = false;
     try {
       await fetch(config.baseURL, { signal: AbortSignal.timeout(3000) });

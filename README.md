@@ -99,6 +99,7 @@ exists on npm, and `npx` would download that one if yours were missing.
 - Tag each assertion with `[spec: <ref>]` or `[code]` (guessed from the code). `sova assertions` grades flows (smoke vs behavioural) and queues guessed ones for one confirmation: `sova confirm <id> --by <name>`.
 - `sova mutate` breaks the app on purpose (`sova/mutations.yaml`) and lists the changes no test noticed.
 - Plan and status: [docs/autonomous-qa-plan.md](docs/autonomous-qa-plan.md).
+- Android and iOS: [docs/mobile.md](docs/mobile.md).
 
 ## How it works
 
@@ -219,7 +220,7 @@ sova is early. This is what has been shown to work and what has not.
 - **Not supported in recordings:** drag, viewport resize, network assertions, file upload and
   custom scripted tools. Such flows are reported as blocked.
 - **`sova heal` is unproven** on a real UI change.
-- **Web only.** Trailblaze also drives iOS and Android; sova ignores those recordings.
+- **Phone apps are new and unproven on a device.** `sova init --platform android|ios` replays Trailblaze's own recordings with no model (see [docs/mobile.md](docs/mobile.md)). It has not been run against an emulator or simulator yet, and iOS needs a Mac.
 
 ## Questions
 
