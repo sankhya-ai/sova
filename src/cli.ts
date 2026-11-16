@@ -13,6 +13,7 @@ import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
 import { lintFile, type Finding } from "./lint.js";
 import { report, measureStability, runTests } from "./playwright.js";
+import { GATE_RESULTS, MUTATION_RESULTS, saveResults, summaryCommand } from "./summary.js";
 import { UserError, walk } from "./util.js";
 
 const HELP = `sova: explored trails in, gated Playwright tests out.
@@ -48,6 +49,9 @@ Usage: sova <command> [options]
   plan              Crawl the running app and draft the screen map, the case plan and a first flow
                     per case (trails-draft/, sova/screens.plan.yaml). Drafts need a person to add
                     the expected outcome. Nothing existing is overwritten.
+  summary           Build sova/summary/index.html: gate stability, break-the-app results and the
+                    case checklist in one page, linked to the Playwright report. "check" and
+                    "mutate" refresh it.
   coverage          Compare sova/screens.yaml with the trails that exist, screen by
                     screen and case by case (valid, invalid, empty, boundary,
                     permission, server-error).
@@ -144,6 +148,7 @@ function checkCommand(root: string, repeat: number): boolean {
     console.log(`Playwright could not run the suite:\n${report.failure}`);
     return false;
   }
+  saveResults(root, GATE_RESULTS, { at: new Date().toISOString(), repeat, tests: report.tests });
   let stable = true;
   for (const test of report.tests) {
     const passed = test.passed === test.runs;
@@ -151,6 +156,8 @@ function checkCommand(root: string, repeat: number): boolean {
     console.log(`  ${passed ? "stable" : "FLAKY "}  ${test.passed}/${test.runs}  ${test.file} > ${test.title}`);
   }
   console.log(stable ? "\nGate passed." : "\nGate failed: fix or re-record the tests marked FLAKY.");
+  summaryCommand(root);
+  console.log("report   sova/.results/html/index.html (Playwright's report: traces, screenshots, video of failures; open with `sova report --open`)");
   return stable;
 }
 
@@ -282,6 +289,8 @@ async function main(): Promise<number> {
       if (!Number.isInteger(repeat) || repeat < 1) throw new UserError("--repeat must be a positive whole number");
       return checkCommand(root, repeat) ? 0 : 1;
     }
+    case "summary":
+      return summaryCommand(root);
     case "plan":
       return planCommand(root);
     case "coverage":
@@ -301,6 +310,8 @@ async function main(): Promise<number> {
       const chosen = wanted.length > 0 ? all.filter((m) => wanted.includes(m.id)) : all;
       if (chosen.length === 0) throw new UserError("No mutations to run.");
       const results = mutate(root, config, chosen, (line) => console.log(line));
+      saveResults(root, MUTATION_RESULTS, { at: new Date().toISOString(), results: results.map((r) => ({ id: r.mutation.id, file: r.mutation.file, note: r.mutation.note, status: r.status, detail: r.detail })) });
+      summaryCommand(root);
       const count = (status: string) => results.filter((r) => r.status === status).length;
       console.log(`\n${count("killed")} killed, ${count("survived")} survived, ${count("invalid")} invalid, ${count("error")} errored of ${results.length}`);
       for (const r of results.filter((x) => x.status !== "killed")) console.log(`  ${r.status}: ${r.mutation.id}${r.mutation.note ? ` - ${r.mutation.note}` : ""}${r.status === "survived" ? "" : ` (${r.detail})`}`);

@@ -115,13 +115,14 @@ export function measureStability(root: string, config: SovaConfig, repeat: numbe
     process.execPath,
     [
       playwrightCli(root), "test", "-c", config.playwrightConfig,
-      `--repeat-each=${repeat}`, "--retries=0", "--reporter=json",
+      `--repeat-each=${repeat}`, "--retries=0", "--reporter=json,html",
     ],
     {
       cwd: root,
       encoding: "utf8",
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: jsonPath, PLAYWRIGHT_JSON_OUTPUT_NAME: jsonPath },
+      // The HTML report of the gate run keeps traces, screenshots and video of every failure.
+      env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: jsonPath, PLAYWRIGHT_JSON_OUTPUT_NAME: jsonPath, PLAYWRIGHT_HTML_OUTPUT_DIR: join(root, HTML_REPORT), PLAYWRIGHT_HTML_OPEN: "never" },
     },
   );
 
