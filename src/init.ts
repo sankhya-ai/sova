@@ -10,6 +10,7 @@ import { onPath, runTool } from "./util.js";
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SKILL_SOURCE = join(PACKAGE_ROOT, "skill");
 const CONFIG_TEMPLATE = join(PACKAGE_ROOT, "templates", "playwright.config.mts");
+const FIXTURES_TEMPLATE = join(PACKAGE_ROOT, "templates", "fixtures.ts");
 
 /** Where coding agents look for skills: Claude Code, then the shared location the others read. */
 export const SKILL_TARGETS = [join(".claude", "skills", "sova"), join(".agents", "skills", "sova")];
@@ -181,6 +182,7 @@ export function init(root: string, options: InitOptions): string[] {
   log.push(createOnce(root, CONFIG_PATH, `${JSON.stringify(config, null, 2)}\n`));
   log.push(createOnce(root, SCREENS_PATH, SCREENS_TEMPLATE));
   log.push(createOnce(root, config.playwrightConfig, readFileSync(CONFIG_TEMPLATE, "utf8")));
+  log.push(createOnce(root, join("sova", "fixtures.ts"), readFileSync(FIXTURES_TEMPLATE, "utf8")));
   log.push(...installSkill(root));
   log.push(linkFromAgentsFile(root));
   if (!configExisted) {
