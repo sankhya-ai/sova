@@ -1,9 +1,9 @@
 # Sova product page
 
-Static, local-first product landing page. No framework, build step, remote fonts,
-analytics, API keys or runtime dependencies. Nothing here deploys the page.
+Static landing page. No framework, build step, analytics, API keys or runtime
+JavaScript dependencies. Nothing here deploys the page.
 
-## Preview
+## Local preview
 
 From the repository root:
 
@@ -11,62 +11,72 @@ From the repository root:
 python3 site/serve.py
 ```
 
-Open the address printed by the command (http://127.0.0.1:4187).
-The server binds to loopback only. Any static file server can serve `site/`.
+Open http://127.0.0.1:4187. The server binds to loopback only.
+Any static file server can serve `site/`.
 
 ## Content baseline
 
-This page describes the development build in draft PR #1, head `47beb5f`,
-not just the default branch. The install command deliberately names that branch.
-Update the command and early-build notice when those changes land.
+Copy describes draft PR #1 at `47beb5f`, not only the default branch. The install
+command deliberately targets its development branch. Update that command and
+notice after the features land.
 
-Sources reviewed:
+Sources: PR #1's README, all `skill-planning/` references, `docs/mobile.md`, CTFd
+example files and `examples/flaskbb-qa/RUN-NOTES.md`.
 
-- `README.md`, `skill-planning/` and `docs/mobile.md` on PR #1.
-- `examples/ctfd-qa/`, `examples/flaskbb-qa/RUN-NOTES.md` and their mutations.
-- Actual CTFd summary and Playwright captures supplied for this page.
+The summary screenshot is a historical CTFd run with three repeats. Current
+default: one run, no retries. The nearby caption says so. Playwright screenshots
+show an intentional failure. Selected 16/16 mutation trials are not full app
+coverage. FlaskBB route/rate-limit gaps stay visible. Phone execution remains
+experimental and unproven on a real device or simulator. No hosted runs,
+dashboard or automatic self-healing is advertised.
 
-The summary screenshot is historical: its 29/29 result used three repeats.
-The current default is one run, with no retries. The caption calls this out.
-The Playwright screenshots show an intentional failure, not a current outage.
+## Redesign
 
-The 16/16 mutation results are selected trials, not full app coverage or a promise
-for another app. FlaskBB's route and rate-limit gaps remain visible on the page.
-Phone support is explicitly experimental: no device/simulator execution is claimed.
-No hosted runs, SaaS dashboard or automatic self-healing is advertised.
+Removed the tilted sheet, stamp, drawn underline, owl wordmark, numbered mono
+labels, icon feature trio, dark section, oversized slogans and blue CTA fill.
+
+The page now uses a shared 1100px content grid, one type family, near-white and
+charcoal, and blue only for selection/focus/link states. The report is straight,
+large and readable, not a background decoration. Report tabs select actual
+product captures; they do not simulate a working hosted dashboard.
+
+Reviewed Linear, Vercel, Berd and Stripe for spacing, hierarchy and relationship
+between product imagery and page copy. No reference site assets or copy used.
 
 ## Assets
 
-- `summary.webp`: supplied full desktop summary screenshot.
-- `summary-crop.webp`: top crop of that screenshot, no content changes.
-- `summary-phone.webp`: supplied phone-width summary screenshot.
-- `playwright.webp`: supplied Playwright report index.
-- `failure.webp`: supplied Playwright failure detail.
-- `mark.svg`: original small owl mark for this page.
+Actual supplied Sova and Playwright screenshots, WebP compressed:
 
-WebP compression only; no invented report data or altered result counts. The
-report sections are screenshot previews, not a hosted or interactive Sova dashboard.
-All screenshots open in a full-image dialog. Summary uses the real phone capture
-at narrow widths. Other report screenshots can scroll horizontally at phone width.
+- `summary.webp`: original full desktop summary.
+- `summary-phone.webp`: original phone-width summary.
+- `overview.webp`: desktop summary crop, (100,24) to (1180,620).
+- `breaks.webp`: desktop mutation-result crop, (100,1465) to (1180,2115).
+- `cases.webp`: desktop case-checklist crop, (100,2650) to (1180,3110).
+- `playwright.webp`: original Playwright index.
+- `failure.webp`: original failure detail, opened from the Playwright view.
 
-## Design
+No report content or counts changed. Crops are taken from the supplied 1280px
+source, not reconstructed UI. On phones, wide table images scroll inside their
+own containers. Clicking opens the full original screenshot.
 
-Electric blue, ink and paper. Oversized plain typography, an evidence-sheet hero,
-editorial rules and a small original owl mark. References informed the quality bar,
-not copied layouts or assets. No gradient text, fake terminal, invented dashboard,
-background blobs, stock testimonials or made-up customer logos. Motion is short,
-nonessential and disabled for `prefers-reduced-motion`.
+Self-hosted Geist Latin variable font, distributed under the SIL Open Font
+License in `assets/Geist-LICENSE.txt`. No font CDN or external runtime requests.
 
-## Verification
+## Verification and limits
 
-Local Chromium checks: 320, 360, 390, 420, 768, 1024, 1440 and 1920 px widths,
-with no page-wide horizontal overflow. Tab buttons support arrow keys, Home and
-End; full screenshot dialog supports Escape and returns focus. Clipboard success
-and denied-access fallback are present. No third-party resource requests.
+Local Chromium: no page-wide horizontal overflow at 320, 360, 390, 420, 768,
+1024, 1440 and 1920 px. Report tabs support arrows, Home and End. Screenshot
+dialog supports Escape and focus return. Copy buttons handle success and denial.
+No JavaScript or local resource errors. axe-core WCAG 2 A/AA and 2.1 AA scan:
+zero violations in the default desktop state, not an accessibility certification.
+Desktop, phone, lower page and report views rendered and visually inspected.
+Reduced-motion preference disables nonessential transitions.
 
-Automated accessibility scan: axe-core WCAG 2 A/AA and 2.1 AA, zero violations
-in the default desktop state. This is not an accessibility certification. Desktop,
-phone, report and failure states were rendered and visually inspected.
+Not verified: Safari, Firefox, physical phones, screen readers, end-to-end package
+installation from the displayed command, or any deployment. Sova's engine and
+trial results were not rerun for this page.
 
-Not verified: Safari, Firefox, real phones, screen-reader behavior, an end-to-end
-package installation from the CTA command, or any deployment. No paid calls.
+Remaining design limits: the report itself is dense, the coverage matrix still
+needs horizontal scrolling on a phone, and static captures cannot show the full
+record-to-test workflow. A genuine short product recording would communicate
+that better than more landing-page decoration.
