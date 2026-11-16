@@ -35,6 +35,11 @@ export function planCases(page: PlanPage): Record<string, { draft?: string; na?:
   const form = page.forms[0];
   const fields = form?.fields ?? [];
   const out: Record<string, { draft?: string; na?: string; skip?: string }> = {};
+  if (form && isDestructive(page.route, form.submit)) {
+    const skip = "destructive form (reset, delete or wipe): a person must decide how to test it safely";
+    for (const k of CASE_KINDS) out[k] = k === "permission" && page.anonymous === "login" ? { draft: "visit signed out and expect the sign-in page" } : { skip };
+    return out;
+  }
   out.valid = form ? { draft: "fill every field with a valid value and submit" } : { draft: "open the page and check it loads" };
   out.invalid = fields.some((f) => ["email", "url", "number"].includes(f.type))
     ? { draft: "fill a typed field with a malformed value and submit" }
@@ -54,9 +59,15 @@ function stepYaml(step: string, call: string, args: Record<string, unknown>): st
   return [...lines, ""];
 }
 
+/** Pages whose submit would destroy or wipe data. A draft must never press them. */
+export function isDestructive(route: string, submit: string): boolean {
+  return /reset|delete|remove|wipe|destroy|purge|drop|logout|export|import/i.test(`${route} ${submit}`);
+}
+
 /** The draft flow for one case, or null when the plan has none. */
 export function draftTrail(baseURL: string, page: PlanPage, kind: string): string | null {
   const form = page.forms[0];
+  if (form && isDestructive(page.route, form.submit) && kind !== "permission") return null;
   const steps: string[] = [];
   const url = baseURL.replace(/\/$/, "") + page.route;
   const nav = stepYaml(`Open ${page.route}`, "web_navigate", { url });

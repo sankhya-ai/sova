@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { draftTrail, normalizeRoute, planCases, screenId, type PlanPage } from "../src/plan.js";
+import { draftTrail, isDestructive, normalizeRoute, planCases, screenId, type PlanPage } from "../src/plan.js";
 
 const form: PlanPage = {
   route: "/register", anonymous: "open",
@@ -31,4 +31,13 @@ test("draft flows type each field, submit, and only assert what the page itself 
   assert.match(draftTrail("http://x.test", form, "empty")!, /web_verifyElementVisible/);
   assert.equal(draftTrail("http://x.test", form, "boundary"), null);
   assert.match(draftTrail("http://x.test", { route: "/a", anonymous: "login", forms: [] }, "permission")!, /web_waitForUrl/);
+});
+
+test("a reset or delete form gets no draft that submits it, only the signed-out check", () => {
+  assert.ok(isDestructive("/admin/reset", "Reset"));
+  assert.ok(!isDestructive("/settings", "Submit"));
+  const page: PlanPage = { route: "/admin/reset", anonymous: "login", forms: [{ submit: "Reset", fields: [{ label: "Pages", type: "text", required: false }] }] };
+  assert.equal(draftTrail("http://x.test", page, "valid"), null);
+  assert.match(draftTrail("http://x.test", page, "permission")!, /web_waitForUrl/);
+  assert.match(planCases(page).valid!.skip!, /destructive/);
 });
