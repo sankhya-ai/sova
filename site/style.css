@@ -13,7 +13,7 @@ html {
 body {
   --paper: #f7f7f2;
   --ink: #20231f;
-  --accent: #ff5635;
+  --accent: #2f5bff;
   --line: #d6d8ce;
   background: var(--paper);
   color: var(--ink);
@@ -1390,14 +1390,37 @@ dialog::backdrop {
   }
 }
 .accent-text {
-  color: #d83b20;
+  color: #2f5bff;
 }
 .header nav a:hover {
-  color: #c73119;
+  color: #244be0;
 }
 .text-link:hover {
-  color: #c73119;
+  color: #244be0;
 }
 .evidence .text-link:hover {
-  color: #ff8a72;
+  color: #8da4ff;
+}
+
+/* Electric blue accent: light text on blue surfaces, blue text on paper. */
+.hero-art {
+  color: var(--paper);
+}
+.primary:hover {
+  color: var(--paper);
+}
+.screen-window:after {
+  color: var(--paper);
+}
+.start {
+  color: var(--paper);
+}
+.start .section-label {
+  color: var(--paper);
+}
+.start .command {
+  border-color: #f7f7f266;
+}
+.start .copy {
+  border-color: #f7f7f299;
 }

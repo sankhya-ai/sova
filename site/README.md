@@ -51,7 +51,7 @@ at narrow widths. Other report screenshots can scroll horizontally at phone widt
 
 ## Design
 
-Vermilion, ink and paper. Oversized plain typography, an evidence-sheet hero,
+Electric blue, ink and paper. Oversized plain typography, an evidence-sheet hero,
 editorial rules and a small original owl mark. References informed the quality bar,
 not copied layouts or assets. No gradient text, fake terminal, invented dashboard,
 background blobs, stock testimonials or made-up customer logos. Motion is short,
