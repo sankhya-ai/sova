@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sova - Make your tests prove it.</title>
+    <meta
+      name="description"
+      content="Open QA for your coding agent. Tests in your repo. A gate with no model calls. Proof from breaking the app on purpose."
+    />
+    <meta name="theme-color" content="#f7f7f2" />
+    <link rel="icon" href="assets/mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="header wrap">
+      <a class="brand" href="#" aria-label="Sova home"
+        ><svg viewBox="0 0 44 32" aria-hidden="true">
+          <path
+            d="M2 2v14a14 14 0 0 0 20 12A14 14 0 0 0 42 16V2L22 10Z"
+            fill="currentColor"
+          />
+          <circle cx="13" cy="16" r="5" fill="var(--paper)" />
+          <circle cx="31" cy="16" r="5" fill="var(--paper)" />
+          <circle cx="14" cy="16" r="2" />
+          <circle cx="30" cy="16" r="2" /></svg
+        >sova<span class="brand-dot">•</span></a
+      >
+      <nav aria-label="Main">
+        <a href="#how">The method</a><a href="#reports">The evidence</a
+        ><a class="nav-github" href="https://github.com/sankhya-ai/sova"
+          >GitHub <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero wrap">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="square"></span> OPEN QA FOR CODING AGENTS
+          </div>
+          <h1>
+            Make your<br />tests
+            <span class="prove"
+              >prove it<svg
+                viewBox="0 0 390 22"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path d="M3 17Q160 -3 386 10" /></svg></span
+            >.
+          </h1>
+          <p class="intro">
+            Your agent writes the tests.<br />Sova asks if they catch the bugs.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#start"
+              >Try Sova <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="#reports"
+              >See the evidence <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <p class="hero-note">
+            Your repo. Your agent. No model calls at the gate.
+          </p>
+        </div>
+        <div class="hero-art">
+          <div class="art-top">
+            <span>EXHIBIT 001 / CTFd</span
+            ><span class="cross" aria-hidden="true">✳</span>
+          </div>
+          <button
+            class="report-paper"
+            data-image="assets/summary.webp"
+            data-title="Sova summary · CTFd"
+            aria-label="Open the full CTFd summary screenshot"
+          >
+            <img
+              src="assets/summary-crop.webp"
+              alt="Real Sova summary: 29 of 29 tests stable, 16 of 16 breaks caught, and 25 of 48 cases covered."
+              width="1280"
+              height="1580"
+              fetchpriority="high"
+            />
+          </button>
+          <div class="proof-seal">
+            <strong>16/16</strong><span>DELIBERATE<br />BREAKS CAUGHT</span
+            ><svg viewBox="0 0 42 42" aria-hidden="true">
+              <path d="m9 22 9 9L35 10" />
+            </svg>
+          </div>
+          <div class="art-bottom">
+            <span>REAL RUN. REAL REPORT.</span><span>OPEN TO INSPECT ↗</span>
+          </div>
+        </div>
+      </section>
+      <div class="compat wrap">
+        <span>BRING YOUR CODING AGENT</span>
+        <div>
+          <b>Claude Code</b><span class="plus">+</span><b>Codex</b
+          ><span class="compat-extra">or any agent with a shell</span>
+        </div>
+        <a href="https://github.com/sankhya-ai/sova/pull/1"
+          >Early build <span aria-hidden="true">↗</span></a
+        >
+      </div>
+      <section class="method wrap section" id="how">
+        <div class="section-label">01 / THE METHOD</div>
+        <div class="section-heading">
+          <h2>Green is a color.<br />Not a guarantee.</h2>
+          <p>
+            A test can pass and still miss the bug.<br />Start with the
+            behavior. Then challenge the test.
+          </p>
+        </div>
+        <div class="method-grid">
+          <article>
+            <div class="step-top">
+              <span>01</span
+              ><svg viewBox="0 0 72 60" aria-hidden="true">
+                <path d="M8 14h56M8 30h35M8 46h44" />
+                <path class="accent-stroke" d="m52 29 6 6 11-16" />
+              </svg>
+            </div>
+            <h3>Plan the cases.</h3>
+            <p>
+              A planning skill your agent can load. Map screens, roles and
+              expected outcomes before driving a flow.
+            </p>
+            <code>skill-planning/</code>
+          </article>
+          <article>
+            <div class="step-top">
+              <span>02</span
+              ><svg viewBox="0 0 72 60" aria-hidden="true">
+                <path d="m23 12-16 18 16 18m26-36 16 18-16 18" />
+                <path class="accent-stroke" d="m42 6-12 48" />
+              </svg>
+            </div>
+            <h3>Keep the tests.</h3>
+            <p>
+              Recorded web flows become plain Playwright tests. They live in
+              your repo, beside the code they check.
+            </p>
+            <code>sova check</code>
+          </article>
+          <article>
+            <div class="step-top">
+              <span>03</span
+              ><svg viewBox="0 0 72 60" aria-hidden="true">
+                <circle cx="36" cy="30" r="23" />
+                <path class="accent-stroke" d="m25 30 8 8 16-19" />
+              </svg>
+            </div>
+            <h3>Break the app.</h3>
+            <p>
+              Deliberately change validation, permissions or calculations. See
+              which test catches each break. And which misses it.
+            </p>
+            <code>sova mutate</code>
+          </article>
+        </div>
+        <div class="gate-note">
+          <span aria-hidden="true">↳</span>
+          <p>
+            <strong>One run. No retries.</strong> Use <code>--repeat</code> to
+            vet new tests for stability, not to hide a failure.
+          </p>
+        </div>
+      </section>
+      <section class="evidence" id="reports">
+        <div class="wrap section">
+          <div class="section-label">02 / THE EVIDENCE</div>
+          <div class="section-heading">
+            <h2>See what<br />the tests saw.</h2>
+            <p>
+              Open the report. Follow the failure.<br />See what was actually
+              tested.
+            </p>
+          </div>
+          <div
+            class="report-tabs"
+            role="tablist"
+            aria-label="Report screenshots"
+          >
+            <button
+              id="tab-summary"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panel-summary"
+              tabindex="0"
+            >
+              Sova summary <span>01</span></button
+            ><button
+              id="tab-playwright"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-playwright"
+              tabindex="-1"
+            >
+              Playwright report <span>02</span></button
+            ><button
+              id="tab-failure"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-failure"
+              tabindex="-1"
+            >
+              Failure detail <span>03</span>
+            </button>
+          </div>
+          <div class="report-stage">
+            <div
+              id="panel-summary"
+              role="tabpanel"
+              aria-labelledby="tab-summary"
+            >
+              <div class="report-caption">
+                <p>
+                  <strong>The whole run, not just a verdict.</strong
+                  ><span
+                    >Gate results, deliberate breaks and the case
+                    checklist.</span
+                  >
+                </p>
+                <button
+                  class="text-link"
+                  data-image="assets/summary.webp"
+                  data-title="Sova summary · CTFd"
+                >
+                  Inspect screenshot ↗
+                </button>
+              </div>
+              <button
+                class="screen-window"
+                data-image="assets/summary.webp"
+                data-title="Sova summary · CTFd"
+                aria-label="Open full Sova summary screenshot"
+              >
+                <picture
+                  ><source
+                    media="(max-width: 760px)"
+                    srcset="assets/summary-phone.webp" />
+                  <img
+                    src="assets/summary.webp"
+                    alt="CTFd summary with per-test stability, attributed mutation results and case coverage."
+                    width="1280"
+                    height="4728"
+                    loading="eager"
+                /></picture>
+              </button>
+            </div>
+            <div
+              id="panel-playwright"
+              role="tabpanel"
+              aria-labelledby="tab-playwright"
+              hidden
+            >
+              <div class="report-caption">
+                <p>
+                  <strong>Ordinary Playwright. All the detail.</strong
+                  ><span
+                    >Traces, screenshots and video for failed web tests.</span
+                  >
+                </p>
+                <button
+                  class="text-link"
+                  data-image="assets/playwright.webp"
+                  data-title="Playwright report · intentional failure"
+                >
+                  Inspect screenshot ↗
+                </button>
+              </div>
+              <button
+                class="screen-window report-index"
+                data-image="assets/playwright.webp"
+                data-title="Playwright report · intentional failure"
+                aria-label="Open Playwright report screenshot"
+              >
+                <img
+                  src="assets/playwright.webp"
+                  alt="Real Playwright report showing three passed tests and one intentionally failed Users list test."
+                  width="1280"
+                  height="800"
+                  loading="eager"
+                />
+              </button>
+            </div>
+            <div
+              id="panel-failure"
+              role="tabpanel"
+              aria-labelledby="tab-failure"
+              hidden
+            >
+              <div class="report-caption">
+                <p>
+                  <strong>A failure you can follow.</strong
+                  ><span
+                    >The assertion, test steps and captured app screen.</span
+                  >
+                </p>
+                <button
+                  class="text-link"
+                  data-image="assets/failure.webp"
+                  data-title="Playwright failure detail · Users list"
+                >
+                  Inspect screenshot ↗
+                </button>
+              </div>
+              <button
+                class="screen-window"
+                data-image="assets/failure.webp"
+                data-title="Playwright failure detail · Users list"
+                aria-label="Open failure detail screenshot"
+              >
+                <img
+                  src="assets/failure.webp"
+                  alt="Users list failure detail with the exact locator error, test steps, app screenshot, trace and video sections."
+                  width="1280"
+                  height="2804"
+                  loading="eager"
+                />
+              </button>
+            </div>
+          </div>
+          <div class="evidence-foot">
+            <span>ACTUAL PRODUCT SCREENSHOTS, NOT MOCKUPS</span>
+            <p>
+              CTFd trial. The summary used 3 repeat runs. Playwright images show
+              an intentional failure.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="coverage wrap section">
+        <div class="section-label">03 / NOTHING SWEPT UNDER THE RUG</div>
+        <div class="coverage-grid">
+          <h2>Untested?<br /><span class="accent-text">Say so.</span></h2>
+          <div>
+            <p class="large-copy">
+              A checklist for every screen.<br />A reason for every gap.
+            </p>
+            <div class="case-list">
+              <div>
+                <span class="case-icon">✓</span><strong>Covered</strong
+                ><span>Trail or hand-written test</span>
+              </div>
+              <div>
+                <span class="case-icon">/</span><strong>Not applicable</strong
+                ><span>With a reason</span>
+              </div>
+              <div>
+                <span class="case-icon">−</span><strong>Skipped</strong
+                ><span>With a reason</span>
+              </div>
+              <div>
+                <span class="case-icon missing">!</span><strong>Missing</strong
+                ><span>Shown, never silently dropped</span>
+              </div>
+            </div>
+            <p class="small-note">
+              Valid · Invalid · Empty · Boundary · Permission · Server error<br />Enable
+              <code>requireCases</code> to fail coverage on missing cases.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="proof wrap section" id="proof">
+        <div class="section-label">04 / THE RECEIPTS</div>
+        <div class="section-heading">
+          <h2>Small trials.<br />Specific proof.</h2>
+          <p>
+            Deliberate source-code breaks, caught by tests<br />about that
+            behavior. Not a universal score.
+          </p>
+        </div>
+        <div class="trial-row">
+          <h3>CTFd</h3>
+          <div class="trial-score">16<span>/16</span></div>
+          <p>Deliberate breaks caught</p>
+          <span class="trial-tag">Auth / roles / scoring</span>
+        </div>
+        <div class="trial-row">
+          <h3>FlaskBB</h3>
+          <div class="trial-score">16<span>/16</span></div>
+          <p>Deliberate breaks caught</p>
+          <span class="trial-tag">Auth / forms / permissions</span>
+        </div>
+        <p class="proof-caveat">
+          These are selected mutations, not full app coverage. FlaskBB covered
+          10 of about 100 routes; its rate limiter was raised for the suite and
+          was not tested.
+        </p>
+        <a class="text-link" href="https://github.com/sankhya-ai/sova/pull/1"
+          >Read the trial notes in the development PR
+          <span aria-hidden="true">↗</span></a
+        >
+        <div class="phone-note">
+          <div class="phone-symbol" aria-hidden="true"><span></span></div>
+          <div>
+            <span class="eyebrow">ANDROID + iOS / EXPERIMENTAL</span>
+            <h3>Next stop: phone apps.</h3>
+            <p>
+              Trailblaze recording replay is built. Real-device and simulator
+              runs are not proven yet. No Playwright on phones.
+            </p>
+          </div>
+          <a class="text-link" href="https://github.com/sankhya-ai/sova/pull/1"
+            >Current status ↗</a
+          >
+        </div>
+      </section>
+      <section class="start" id="start">
+        <div class="wrap start-inner">
+          <div>
+            <div class="section-label">YOUR AGENT. A HIGHER BAR.</div>
+            <h2>Put your tests<br />to the test.</h2>
+            <p>
+              Open source. Runs locally. The gate needs no paid model calls.
+            </p>
+            <a class="button dark" href="https://github.com/sankhya-ai/sova"
+              >Get Sova on GitHub <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="start-instructions">
+            <div class="eyebrow">TRY THE DEVELOPMENT BUILD</div>
+            <div class="command">
+              <code
+                >npm i -D
+                github:sankhya-ai/sova#feat/case-coverage-assertion-quality</code
+              ><button
+                class="copy"
+                aria-label="Copy installation command"
+                data-copy="npm i -D github:sankhya-ai/sova#feat/case-coverage-assertion-quality"
+              >
+                Copy
+              </button>
+            </div>
+            <div class="command">
+              <code>npx --no-install sova init</code
+              ><button
+                class="copy"
+                aria-label="Copy initialization command"
+                data-copy="npx --no-install sova init"
+              >
+                Copy
+              </button>
+            </div>
+            <p>
+              Then tell your coding agent:<br /><strong
+                >"Use the sova skill to test this app."</strong
+              >
+            </p>
+            <p class="start-note">
+              Node.js 20+ · A local test app · A coding agent<br />These
+              features are in
+              <a href="https://github.com/sankhya-ai/sova/pull/1">draft PR #1</a
+              >, not a stable release. Exploration uses your existing agent;
+              only the gate is model-free.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="wrap footer">
+      <a class="brand" href="#">sova<span class="brand-dot">•</span></a
+      ><span>Built at Sankhya AI Labs. Powered by Trailblaze.</span
+      ><a href="https://github.com/sankhya-ai/sova">Source ↗</a
+      ><span>Apache 2.0</span>
+    </footer>
+    <dialog id="image-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-bar">
+        <h2 id="dialog-title">Report screenshot</h2>
+        <button id="close-dialog" aria-label="Close screenshot">
+          Close <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="dialog-image">
+        <img id="expanded-image" src="assets/summary.webp" alt="" />
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
