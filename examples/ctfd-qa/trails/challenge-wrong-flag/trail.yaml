@@ -1,0 +1,64 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: challenge-wrong-flag
+
+trail:
+  - step: "Open the login page"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/login"
+
+  - step: "Type the user name"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.SOLVER_NAME}}"
+            ref: "textbox \"User Name or Email\""
+
+  - step: "Type the password"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.SOLVER_PASSWORD}}"
+            ref: "textbox \"Password\""
+
+  - step: "Press Submit"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "Open the challenges"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/challenges"
+
+  - step: "Open Warmup"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Warmup 100\""
+
+  - step: "Type a flag"
+    recording:
+      web:
+        - web_type:
+            text: "flag{nope}"
+            ref: "css=input[name=submission]"
+
+  - step: "Submit the flag"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "The flag is rejected"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=text=Incorrect"
+

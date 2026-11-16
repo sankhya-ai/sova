@@ -1,0 +1,39 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: sign-in-admin
+
+trail:
+  - step: "Open the login page"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/login"
+
+  - step: "Type the user name"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.ADMIN_NAME}}"
+            ref: "textbox \"User Name or Email\""
+
+  - step: "Type the password"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.ADMIN_PASSWORD}}"
+            ref: "textbox \"Password\""
+
+  - step: "Press Submit"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "The admin panel link is shown"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=a[href=\"/admin\"]"
+

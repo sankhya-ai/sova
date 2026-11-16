@@ -1,0 +1,17 @@
+{
+  "baseURL": "http://127.0.0.1:4000",
+  "startCommand": "",
+  "trailsDir": "trails",
+  "specsDir": "sova/tests",
+  "playwrightConfig": "sova/playwright.config.mts",
+  "device": "web/playwright-native",
+  "login": {
+    "trail": "sign-in-admin",
+    "anonymous": ["login-wrong-password", "signed-out-redirects-to-login", "register-duplicate-name", "challenge-wrong-flag", "challenge-wrong-flag-same-length", "challenge-flag-prefix", "challenge-correct-flag-scores"],
+    "roles": { "user": { "trail": "sign-in-user" } },
+    "as": { "admin-area-redirects-user": "user" }
+  },
+  "workers": 1,
+  "mutationRebuild": "sh ctfd.sh restart",
+  "mutationReset": "sh ctfd.sh reset"
+}

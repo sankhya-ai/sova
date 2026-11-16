@@ -1,0 +1,46 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: register-duplicate-name
+
+trail:
+  - step: "Open the register page"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/register"
+
+  - step: "Type a name"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.USER_NAME}}"
+            ref: "textbox \"User Name\""
+
+  - step: "Type an email"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.sova-dup@example.com}}"
+            ref: "textbox \"Email\""
+
+  - step: "Type a password"
+    recording:
+      web:
+        - web_type:
+            text: "secret-pass-123"
+            ref: "textbox \"Password\""
+
+  - step: "Press Submit"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "The taken-name error is shown"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=text=That user name is already taken"
+

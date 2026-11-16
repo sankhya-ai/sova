@@ -1,0 +1,14 @@
+# The app's screens, mapped from its routes and components.
+# `sova coverage` fails while a screen has no working trail and no `skip:` reason.
+#
+# screens:
+#   - id: login
+#     route: /login
+#     source: src/pages/Login.tsx
+#     trails: [login, login-invalid]     # ids under trails/, i.e. trails/login/trail.yaml
+#   - id: billing
+#     route: /settings/billing
+#     source: src/pages/Billing.tsx
+#     trails: []
+#     skip: charges a real card; needs a sandbox account
+screens: []
