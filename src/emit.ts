@@ -151,7 +151,9 @@ export function emitCall(call: ToolCall, config: Pick<SovaConfig, "baseURL">): C
       const locator = requireLocator(call, warnings).code;
       const expected = textCode(call, str(args.expected));
       const type = str(args.type || "TEXT").toUpperCase();
-      if (type === "VALUE") return { lines: [`await expect(${locator}).toHaveValue(${expected});`], warnings };
+      // An input has no text content, so TEXT on a textbox would never match what the user sees: read its value.
+      const isInput = /^(textbox|searchbox|combobox|spinbutton)\b/.test(str(args.ref).trim());
+      if (type === "VALUE" || (type === "TEXT" && isInput)) return { lines: [`await expect(${locator}).toHaveValue(${expected});`], warnings };
       if (type === "ATTRIBUTE") {
         const attribute = str(args.attribute);
         if (attribute === "") throw new Blocked("web_verifyValue of type ATTRIBUTE recorded no attribute name");

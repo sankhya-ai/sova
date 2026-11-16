@@ -101,6 +101,10 @@ test("each web tool maps to the matching Playwright call", () => {
   assert.deepEqual(lines("web_verifyElementVisible", button), [`await expect(${go}).toBeVisible();`]);
   assert.deepEqual(lines("web_verifyValue", { ...button, expected: "x" }), [`await expect(${go}).toContainText('x');`]);
   assert.deepEqual(lines("web_verifyValue", { ...button, type: "value", expected: "x" }), [`await expect(${go}).toHaveValue('x');`]);
+  const box = { ref: 'textbox "Name"', expected: "x" };
+  assert.match(lines("web_verifyValue", box)[0]!, /toHaveValue\('x'\)/, "TEXT on a textbox reads the input value");
+  assert.match(lines("web_verifyValue", { ...box, type: "TEXT" })[0]!, /toHaveValue/);
+  assert.match(lines("web_verifyValue", { ref: 'button "Go"', expected: "x" })[0]!, /toContainText/, "TEXT on a button stays text");
   assert.deepEqual(lines("web_snapshot", { screenName: "home" }), []);
 });
 
