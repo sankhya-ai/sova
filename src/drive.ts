@@ -191,6 +191,16 @@ export function act(root: string, config: SovaConfig, args: string[]): number {
       noted.push({ step, key: secret[1]!, sent: value, durable: `{{env.${secret[2]}}}` });
       return `${secret[1]}=${value}`;
     }
+    // `text=unique:ada@example.com` types a value that is new each time (ada+k3j9x2@example.com); the trail keeps `{{unique.<base>}}`.
+    const fresh = index < planned.length - 2 ? /^([A-Za-z]+)=unique:(.+)$/.exec(arg) : null;
+    if (fresh) {
+      const base = fresh[2]!;
+      const tag = Math.random().toString(36).slice(2, 8);
+      const at = base.indexOf("@");
+      const value = at === -1 ? `${base}-${tag}` : `${base.slice(0, at)}+${tag}${base.slice(at)}`;
+      noted.push({ step, key: fresh[1]!, sent: value, durable: `{{unique.${base}}}` });
+      return `${fresh[1]}=${value}`;
+    }
     if (!/^ref=e\d+$/.test(arg)) return arg;
     const sent = driverRef(arg.slice(4), screen);
     noted.push({ step, sent, durable: durableRef(arg.slice(4), screen) });

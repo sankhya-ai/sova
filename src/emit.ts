@@ -28,6 +28,17 @@ function str(value: unknown): string {
 }
 
 const ENV_TEMPLATE = /\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}/g;
+const UNIQUE_TEMPLATE = /\{\{unique\.(.+?)\}\}/g;
+
+/** Marks a line that needs a value that is new on every run, so the test gets the `unique` helper. */
+const UNIQUE_CALL = "unique(";
+
+/** A readable test title from a trail id: `customers-create-valid` becomes `Customers create valid`. */
+export function humanizeTitle(title: string): string {
+  if (!/^[a-z0-9]+(?:[-_.][a-z0-9]+)*$/.test(title)) return title;
+  const words = title.replace(/[-_.]+/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 /** Marks a line that reads a secret, so the spec gets the `env` helper. */
 const ENV_CALL = "env(";
@@ -37,7 +48,9 @@ const ENV_CALL = "env(";
  * from the environment when the test runs, so it never sits in the trail or the spec.
  */
 function textCode(call: ToolCall, value: string): string {
-  const rest = value.replace(ENV_TEMPLATE, "");
+  const uniqueWhole = /^\{\{unique\.(.+?)\}\}$/.exec(value);
+  if (uniqueWhole) return `${UNIQUE_CALL}${quote(uniqueWhole[1]!)})`;
+  const rest = value.replace(ENV_TEMPLATE, "").replace(UNIQUE_TEMPLATE, "");
   if (/\{\{.+?\}\}/.test(rest)) {
     throw new Blocked(`${call.tool} uses a memory template (${value}); only {{env.NAME}} is supported`);
   }
@@ -45,10 +58,12 @@ function textCode(call: ToolCall, value: string): string {
   const whole = /^\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}$/.exec(value);
   if (whole) return `${ENV_CALL}${quote(whole[1]!)})`;
   const body = value
-    .split(/(\{\{env\.[A-Za-z_][A-Za-z0-9_]*\}\})/)
+    .split(/(\{\{env\.[A-Za-z_][A-Za-z0-9_]*\}\}|\{\{unique\..+?\}\})/)
     .map((part) => {
       const match = /^\{\{env\.(.+)\}\}$/.exec(part);
-      return match ? `\${${ENV_CALL}${quote(match[1]!)})}` : part.replace(/[`\\$]/g, "\\$&");
+      if (match) return `\${${ENV_CALL}${quote(match[1]!)})}`;
+      const fresh = /^\{\{unique\.(.+)\}\}$/.exec(part);
+      return fresh ? `\${${UNIQUE_CALL}${quote(fresh[1]!)})}` : part.replace(/[`\\$]/g, "\\$&");
     })
     .join("");
   return `\`${body}\``;
@@ -176,7 +191,7 @@ export function emitTrail(
   trail: Trail,
   sourceLabel: string,
   fallbackTitle: string,
-  config: Pick<SovaConfig, "baseURL">,
+  config: Pick<SovaConfig, "baseURL"> & { fixturesImport?: string },
   role: "test" | "login" | "anonymous" = "test",
 ): EmitResult {
   const warnings: string[] = [];
@@ -220,7 +235,7 @@ export function emitTrail(
     return { spec: null, status: "blocked", reason: "the trail has no replayable steps", warnings, assertions };
   }
 
-  const title = trail.title ?? fallbackTitle;
+  const title = humanizeTitle(trail.title ?? fallbackTitle);
   const tags = trail.tags.map((tag) => (tag.startsWith("@") ? tag : `@${tag}`));
   const details = tags.length > 0 ? `{ tag: [${tags.map(quote).join(", ")}] }, ` : "";
   if (role === "login") {
@@ -242,6 +257,21 @@ export function emitTrail(
         "  return value;\n" +
         "}\n\n"
       : "") +
+    (body.includes(UNIQUE_CALL)
+      ? "/** A value that is new on every run (an email, a name), so a second run does not collide with the first. */\n" +
+        "function makeUnique(): (base: string) => string {\n" +
+        "  const seen = new Map<string, string>();\n" +
+        "  return (base) => {\n" +
+        "    const known = seen.get(base);\n" +
+        "    if (known) return known;\n" +
+        "    const tag = Math.random().toString(36).slice(2, 8);\n" +
+        "    const at = base.indexOf('@');\n" +
+        "    const value = at === -1 ? `${base}-${tag}` : `${base.slice(0, at)}+${tag}${base.slice(at)}`;\n" +
+        "    seen.set(base, value);\n" +
+        "    return value;\n" +
+        "  };\n" +
+        "}\n\n"
+      : "") +
     (role === "login" || role === "anonymous"
       ? "// Starts signed out, whatever session the rest of the suite shares.\n" +
         "test.use({ storageState: { cookies: [], origins: [] } });\n\n"
@@ -249,9 +279,10 @@ export function emitTrail(
   const spec =
     `${GENERATED_MARKER}${sourceLabel}\n` +
     "// Do not edit. Change the trail, then run `sova emit`.\n" +
-    "import { expect, test } from '@playwright/test';\n\n" +
+    `import { expect, test } from ${quote(config.fixturesImport ?? "@playwright/test")};\n\n` +
     helpers +
     `test(${quote(title)}, ${details}async ({ page }) => {\n` +
+    (body.includes(UNIQUE_CALL) ? "  const unique = makeUnique();\n\n" : "") +
     body +
     "\n});\n";
   return { spec, status: "emitted", warnings, assertions };
@@ -294,6 +325,14 @@ export function emitAll(root: string, config: SovaConfig, write: boolean): EmitR
   const specsDir = join(root, config.specsDir);
   const files: EmittedFile[] = [];
   const expected = new Set<string>();
+  // sova/fixtures.ts, when present, is where the suite's fixtures and cleanup live; specs import `test` from it.
+  const fixturesFile = join(root, "sova", "fixtures.ts");
+  const fixturesImport = existsSync(fixturesFile)
+    ? (() => {
+        const rel = relative(specsDir, fixturesFile).split(sep).join("/").replace(/\.ts$/, "");
+        return rel.startsWith(".") ? rel : `./${rel}`;
+      })()
+    : undefined;
 
   for (const trailPath of walk(trailsDir, isTrailFile)) {
     const id = trailId(trailPath, trailsDir);
@@ -303,7 +342,7 @@ export function emitAll(root: string, config: SovaConfig, write: boolean): EmitR
     let result: EmitResult;
     try {
       const label = relative(root, trailPath).split(sep).join("/");
-      result = emitTrail(readTrail(trailPath), label, id, config, role);
+      result = emitTrail(readTrail(trailPath), label, id, { ...config, fixturesImport }, role);
     } catch (error) {
       result = { spec: null, status: "blocked", reason: (error as Error).message, warnings: [], assertions: 0 };
     }
