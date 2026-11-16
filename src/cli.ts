@@ -7,6 +7,7 @@ import { loadScreens, screenCoverage, unclaimedTrails } from "./coverage.js";
 import { confirmTrailFile, gradeTrail, hasTrail, trailPath } from "./quality.js";
 import { readTrail } from "./trail.js";
 import { loadMutations, mutate } from "./mutate.js";
+import { planCommand } from "./plan.js";
 import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./drive.js";
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
@@ -44,6 +45,9 @@ Usage: sova <command> [options]
   check [--repeat <n>]
                     The gate: emit is current, lint has no errors, and every
                     test passes <n> runs in a row (default 5) with no retries.
+  plan              Crawl the running app and draft the screen map, the case plan and a first flow
+                    per case (trails-draft/, sova/screens.plan.yaml). Drafts need a person to add
+                    the expected outcome. Nothing existing is overwritten.
   coverage          Compare sova/screens.yaml with the trails that exist, screen by
                     screen and case by case (valid, invalid, empty, boundary,
                     permission, server-error).
@@ -278,6 +282,8 @@ async function main(): Promise<number> {
       if (!Number.isInteger(repeat) || repeat < 1) throw new UserError("--repeat must be a positive whole number");
       return checkCommand(root, repeat) ? 0 : 1;
     }
+    case "plan":
+      return planCommand(root);
     case "coverage":
       return coverageCommand(root) ? 0 : 1;
     case "cases": {
