@@ -25,6 +25,10 @@ if (existsSync(envFile)) {
 const signsIn = Boolean(sova.login?.trail);
 const authState = join(here, '.auth', 'user.json');
 process.env.SOVA_AUTH_STATE = authState;
+// Extra roles (config "login.roles") each keep their own saved session.
+for (const role of Object.keys(sova.login?.roles ?? {})) {
+  process.env[`SOVA_AUTH_STATE_${role.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`] = join(here, '.auth', `role-${role}.json`);
+}
 
 // Allure results are written when allure-playwright is installed; `sova report` builds the report.
 const hasAllure = (() => {
@@ -54,7 +58,8 @@ export default defineConfig({
   reporter,
   use: {
     baseURL: process.env.SOVA_BASE_URL ?? sova.baseURL,
-    trace: 'retain-on-failure',
+    // Playwright's guidance: trace on the first retry in CI (not on every run); keep it on failure locally.
+    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },

@@ -1,0 +1,81 @@
+mutations:
+- id: scoring-sums-count-not-value
+  file: ctfd/CTFd/utils/scores/__init__.py
+  find: db.func.sum(Challenges.value).label("score")
+  replace: db.func.count(Challenges.value).label("score")
+  note: 'calculation: a solve adds 1 point instead of the challenge value'
+- id: scoring-skips-all-nonzero-challenges
+  file: ctfd/CTFd/utils/scores/__init__.py
+  find: .filter(Challenges.value != 0)
+  replace: .filter(Challenges.value == 0)
+  note: 'calculation: scores only count zero-value challenges'
+- id: admins-only-lets-everyone-in
+  file: ctfd/CTFd/utils/decorators/__init__.py
+  find: "    def admins_only_wrapper(*args, **kwargs):\n        if is_admin():"
+  replace: "    def admins_only_wrapper(*args, **kwargs):\n        if True:"
+  note: 'permission: any logged-in or anonymous visitor can open admin pages'
+- id: login-accepts-any-password
+  file: ctfd/CTFd/auth.py
+  find: 'if user and verify_password(request.form["password"], user.password):'
+  replace: 'if user:'
+  note: 'permission: any password signs in'
+- id: login-error-message-dropped
+  file: ctfd/CTFd/auth.py
+  find: errors.append("Your username or password is incorrect")
+  replace: pass
+  note: 'validation: a wrong password shows no message'
+- id: duplicate-username-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("That user name is already taken"))
+  replace: pass
+  note: 'validation: a taken user name can be registered again'
+- id: short-password-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("Pick a longer password"))
+  replace: pass
+  note: 'validation: an empty password is accepted'
+- id: invalid-email-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("Please enter a valid email address"))
+  replace: pass
+  note: 'validation: an invalid email address is accepted at registration'
+- id: flag-length-check-removed
+  file: ctfd/CTFd/plugins/flags/__init__.py
+  find: "        if len(saved) != len(provided):\n            return False\n"
+  replace: ''
+  note: 'validation: a flag that is a prefix of the real one is accepted'
+- id: any-same-length-flag-accepted
+  file: ctfd/CTFd/plugins/flags/__init__.py
+  find: return result == 0
+  replace: return True
+  note: 'validation: any flag of the right length is accepted'
+- id: private-challenges-open-to-anonymous
+  file: ctfd/CTFd/utils/decorators/visibility.py
+  find: "        elif v == ChallengeVisibilityTypes.PRIVATE:\n            if authed():"
+  replace: "        elif v == ChallengeVisibilityTypes.PRIVATE:\n            if True:"
+  note: 'permission: private challenges open to signed-out visitors'
+- id: user-delete-api-unprotected
+  file: ctfd/CTFd/api/v1/users.py
+  find: "    @admins_only\n    @users_namespace.doc(\n        description=\"Endpoint to delete a specific User object\","
+  replace: "    @users_namespace.doc(\n        description=\"Endpoint to delete a specific User object\","
+  note: 'permission: the delete-user API no longer needs an admin'
+- id: login-rate-limit-removed
+  file: ctfd/CTFd/utils/decorators/__init__.py
+  find: "            if current_app.config.get(\"RATELIMIT_DISABLE\"):\n                return f(*args, **kwargs)\n\n            ip_address"
+  replace: "            if True:\n                return f(*args, **kwargs)\n\n            ip_address"
+  note: 'boundary: rate limits stop applying, so sign-in can be guessed without limit'
+- id: long-password-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("Pick a shorter password"))
+  replace: pass
+  note: 'validation: a password over 128 characters is accepted'
+- id: empty-name-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("Pick a longer user name"))
+  replace: pass
+  note: 'validation: an empty user name is accepted'
+- id: settings-wrong-current-password-accepted
+  file: ctfd/CTFd/schemas/users.py
+  find: "                if test is True:\n                    return data\n                else:"
+  replace: "                if True:\n                    return data\n                else:"
+  note: 'permission: a password change no longer checks the current password'

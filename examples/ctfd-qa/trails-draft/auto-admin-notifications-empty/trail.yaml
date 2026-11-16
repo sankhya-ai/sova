@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-notifications empty
+
+trail:
+  - step: "Open /admin/notifications"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/notifications"
+
+  - step: "Submit with nothing filled in"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+

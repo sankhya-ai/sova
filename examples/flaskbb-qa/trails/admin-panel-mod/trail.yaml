@@ -1,0 +1,24 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: admin-panel-mod
+
+trail:
+  - step: "Open the management panel as a moderator"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/admin/
+
+  - step: "The moderator stays in the management panel [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: /admin/
+
+  - step: "The overview is shown [code]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: heading "Everything seems alright."

@@ -1,0 +1,14 @@
+{
+  "name": "sova-ctfd-qa",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@sankhya/sova": "file:../..",
+    "allure": "^3.33.0",
+    "allure-playwright": "^3.14.0"
+  },
+  "scripts": {
+    "test:e2e:sova": "sova run"
+  }
+}

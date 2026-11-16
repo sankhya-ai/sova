@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-submissions-correct permission
+
+trail:
+  - step: "Open /admin/submissions/correct signed out"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/submissions/correct"
+
+  - step: "The sign-in page is shown"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: "/login"
+

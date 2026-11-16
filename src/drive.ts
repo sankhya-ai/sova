@@ -5,6 +5,7 @@ import { ENV_PATH, loadEnv, type SovaConfig } from "./config.js";
 import { isTrailFile } from "./emit.js";
 import { readTrail } from "./trail.js";
 import { AUTHOR_NAMED_ROLES, NAME_PROHIBITED_ROLES } from "./locator.js";
+import { isMobile, MOBILE_ACTIONS, mobileDevice } from "./mobile.js";
 import { onPath, runTool, UserError, walk } from "./util.js";
 
 /**
@@ -132,6 +133,11 @@ export function resolveUrl(target: string, baseURL: string): string {
 /** The Trailblaze arguments for `sova open <url>`. */
 export function openArgs(config: SovaConfig, args: string[]): string[] {
   const { step, rest } = takeStep(args);
+  if (isMobile(config)) {
+    const appId = rest[0] ?? config.appId;
+    if (!appId) throw new UserError("Which app? Pass the package name or bundle id, or set appId in sova/config.json.");
+    return ["tool", "-d", mobileDevice(config), "launchApp", `appId=${appId}`, "-s", step ?? `Launch ${appId}`];
+  }
   const target = rest[0] ?? "/";
   const url = resolveUrl(target, config.baseURL);
   return ["tool", "-d", config.device, "web_navigate", `url=${url}`, "-s", step ?? `Open ${target}`];
@@ -145,14 +151,16 @@ export function actArgs(
 ): string[] {
   const [name, ...others] = args;
   if (!name) throw new UserError("Usage: sova act <action> [key=value ...] -s \"<what this step is for>\"\nRun `sova actions` for the list.");
-  const tool = ACTIONS[name]?.tool ?? name;
+  const phone = isMobile(config);
+  const tool = (phone ? MOBILE_ACTIONS : ACTIONS)[name]?.tool ?? name;
   if (others.includes("--help") || others.includes("-h")) return ["tool", tool, "--help"];
   const { step, rest } = takeStep(others);
   const text = requireStep(step, `sova act click ref=e5 -s "Click Sign in"`);
-  const extra = name === "back" ? ["action=BACK"] : [];
-  // Refuse a ref no test could find again before the driver acts on it.
-  for (const arg of rest) if (arg.startsWith("ref=")) durableRef(arg.slice(4), screen);
-  return ["tool", "-d", config.device, tool, ...extra, ...rest, "-s", text];
+  const extra = name === "back" && !phone ? ["action=BACK"] : [];
+  // Refuse a ref no test could find again before the driver acts on it. (A phone's refs are content
+  // hashes the recording turns into a selector itself, so there is nothing to translate.)
+  if (!phone) for (const arg of rest) if (arg.startsWith("ref=")) durableRef(arg.slice(4), screen);
+  return ["tool", "-d", phone ? mobileDevice(config) : config.device, tool, ...extra, ...rest, "-s", text];
 }
 
 export function open(root: string, config: SovaConfig, args: string[]): number {
@@ -160,7 +168,7 @@ export function open(root: string, config: SovaConfig, args: string[]): number {
 }
 
 export function look(root: string, config: SovaConfig): number {
-  return trailblaze(root, ["snapshot", "-d", config.device]);
+  return trailblaze(root, ["snapshot", "-d", isMobile(config) ? mobileDevice(config) : config.device]);
 }
 
 /**
@@ -190,6 +198,16 @@ export function act(root: string, config: SovaConfig, args: string[]): number {
       }
       noted.push({ step, key: secret[1]!, sent: value, durable: `{{env.${secret[2]}}}` });
       return `${secret[1]}=${value}`;
+    }
+    // `text=unique:ada@example.com` types a value that is new each time (ada+k3j9x2@example.com); the trail keeps `{{unique.<base>}}`.
+    const fresh = index < planned.length - 2 ? /^([A-Za-z]+)=unique:(.+)$/.exec(arg) : null;
+    if (fresh) {
+      const base = fresh[2]!;
+      const tag = Math.random().toString(36).slice(2, 8);
+      const at = base.indexOf("@");
+      const value = at === -1 ? `${base}-${tag}` : `${base.slice(0, at)}+${tag}${base.slice(at)}`;
+      noted.push({ step, key: fresh[1]!, sent: value, durable: `{{unique.${base}}}` });
+      return `${fresh[1]}=${value}`;
     }
     if (!/^ref=e\d+$/.test(arg)) return arg;
     const sent = driverRef(arg.slice(4), screen);
@@ -309,8 +327,9 @@ export function reset(root: string, config: SovaConfig): number {
  * Sign the driven browser in by replaying the configured sign-in flow, without recording it.
  * Flows driven afterwards start signed in, the way their tests will.
  */
-export function login(root: string, config: SovaConfig): number {
-  const id = config.login?.trail;
+export function login(root: string, config: SovaConfig, role?: string): number {
+  const id = role ? config.login?.roles?.[role]?.trail : config.login?.trail;
+  if (role && !id) throw new UserError(`No role "${role}" in login.roles. Known: ${Object.keys(config.login?.roles ?? {}).join(", ") || "none"}.`);
   if (!id) {
     throw new UserError('No sign-in flow is configured. Drive one, save it, then set "login": { "trail": "<id>" } in sova/config.json.');
   }

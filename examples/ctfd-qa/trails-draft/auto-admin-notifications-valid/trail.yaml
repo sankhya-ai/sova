@@ -1,0 +1,33 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-notifications valid
+
+trail:
+  - step: "Open /admin/notifications"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/notifications"
+
+  - step: "Type Title"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Title\""
+
+  - step: "Type Content"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Content\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+

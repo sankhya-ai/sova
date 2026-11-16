@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: admin-challenges-list
+
+trail:
+  - step: "Open the admin challenges"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/challenges"
+
+  - step: "Warmup is listed"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=a >> text=Warmup >> visible=true >> nth=0"
+

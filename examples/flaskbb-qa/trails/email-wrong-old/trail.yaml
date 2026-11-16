@@ -1,0 +1,46 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: email-wrong-old
+
+trail:
+  - step: "Open the email settings"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/user/settings/email
+
+  - step: "Type a wrong old email"
+    recording:
+      web:
+        - web_type:
+            text: nobody@example.com
+            ref: textbox "Old email address"
+
+  - step: "Type a new email"
+    recording:
+      web:
+        - web_type:
+            text: fresh@example.com
+            ref: textbox "New email address"
+
+  - step: "Repeat the new email"
+    recording:
+      web:
+        - web_type:
+            text: fresh@example.com
+            ref: textbox "Confirm email address"
+
+  - step: "Press Save"
+    recording:
+      web:
+        - web_click:
+            ref: button "Save"
+
+  - step: "The error says the old email does not match [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.invalid-feedback
+            expected: Old email does not match

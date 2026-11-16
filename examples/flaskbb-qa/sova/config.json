@@ -1,0 +1,44 @@
+{
+  "baseURL": "http://localhost:5000",
+  "startCommand": "",
+  "trailsDir": "trails",
+  "specsDir": "sova/tests",
+  "playwrightConfig": "sova/playwright.config.mts",
+  "device": "web/playwright-native",
+  "login": {
+    "trail": "sign-in",
+    "anonymous": [
+      "login-wrong-password",
+      "register-valid",
+      "register-taken-username",
+      "register-forbidden-username",
+      "register-username-too-short",
+      "register-password-mismatch",
+      "register-taken-email"
+    ],
+    "roles": {
+      "admin": {
+        "trail": "sign-in-admin"
+      },
+      "mod": {
+        "trail": "sign-in-mod"
+      },
+      "bob": {
+        "trail": "sign-in-bob"
+      }
+    },
+    "as": {
+      "password-wrong-old": "bob",
+      "password-same-as-old": "bob",
+      "email-wrong-old": "bob",
+      "email-taken": "bob",
+      "details-save": "bob",
+      "admin-add-user-taken": "admin",
+      "admin-add-user-valid": "admin",
+      "admin-panel-mod": "mod"
+    }
+  },
+  "workers": 1,
+  "mutationRebuild": "/home/sandbox/qa/run.sh",
+  "mutationReset": "/home/sandbox/qa/run.sh"
+}

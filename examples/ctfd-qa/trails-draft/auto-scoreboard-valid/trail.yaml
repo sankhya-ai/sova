@@ -1,0 +1,13 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto scoreboard valid
+
+trail:
+  - step: "Open /scoreboard"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/scoreboard"
+

@@ -2,23 +2,34 @@
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { loadConfig } from "./config.js";
+import { caseCoverage, CASE_HELP, initCases, loadCases, summarizeCases } from "./cases.js";
 import { loadScreens, screenCoverage, unclaimedTrails } from "./coverage.js";
+import { confirmTrailFile, gradeTrail, hasTrail, trailPath } from "./quality.js";
+import { readTrail } from "./trail.js";
+import { loadMutations, mutate } from "./mutate.js";
+import { planCommand } from "./plan.js";
 import { ACTIONS, act, discard, heal, login, look, open, reset, save } from "./drive.js";
 import { emitAll } from "./emit.js";
 import { doctor, init, installSkill, SKILL_SOURCE } from "./init.js";
 import { lintFile, type Finding } from "./lint.js";
-import { report, measureStability, runTests } from "./playwright.js";
-import { UserError, walk } from "./util.js";
+import { report, runTests } from "./playwright.js";
+import { isMobile, lintMobileTrail, measureSuite, MOBILE_ACTIONS, platformOf, runArgs } from "./mobile.js";
+import type { MobilePlatform } from "./trail.js";
+import { GATE_RESULTS, MUTATION_RESULTS, saveResults, summaryCommand } from "./summary.js";
+import { runTool, UserError, walk } from "./util.js";
 
 const HELP = `sova: explored trails in, gated Playwright tests out.
 
 Usage: sova <command> [options]
 
   init [--base-url <url>] [--start <command>] [--no-install]
+       [--platform android|ios --app-id <package or bundle id>]
                     One-step setup: detects how the app starts, installs
                     Playwright, Chromium and Trailblaze if missing, and
                     registers the skill for Claude Code, Codex, Cursor and
-                    other agents. Safe to re-run.
+                    other agents. Safe to re-run. With --platform android|ios it
+                    sets up a phone app instead: no Playwright, the Trailblaze
+                    recordings are the tests.
   doctor            Check that everything sova needs is installed.
   open [<url or path>] [-s "<step>"]
                     Open a page in the driven browser (default: the app's root).
@@ -29,7 +40,8 @@ Usage: sova <command> [options]
                     session, and generate the Playwright spec.
   discard           Abandon the flow in progress and close the browser session.
   reset             Start over with a clean, signed-out browser.
-  login             Sign the driven browser in with the configured sign-in flow,
+  login [--as <role>]
+                    Sign the driven browser in with the configured sign-in flow,
                     so the flows you drive next start signed in.
   heal <id>         Replay a trail and repair steps the app has drifted from,
                     then regenerate its spec.
@@ -38,8 +50,27 @@ Usage: sova <command> [options]
   lint              Check the generated specs against Playwright practices.
   check [--repeat <n>]
                     The gate: emit is current, lint has no errors, and every
-                    test passes <n> runs in a row (default 5) with no retries.
-  coverage          Compare sova/screens.yaml with the trails that exist.
+                    test passes once with no retries (like plain Playwright).
+                    --repeat <n> runs each test n times in a row: use it to vet
+                    newly written tests before trusting them.
+  plan              Crawl the running app and draft the screen map, the case plan and a first flow
+                    per case (trails-draft/, sova/screens.plan.yaml). Drafts need a person to add
+                    the expected outcome. Nothing existing is overwritten.
+  summary           Build sova/summary/index.html: gate stability, break-the-app results and the
+                    case checklist in one page, linked to the Playwright report. "check" and
+                    "mutate" refresh it.
+  coverage          Compare sova/screens.yaml with the trails that exist, screen by
+                    screen and case by case (valid, invalid, empty, boundary,
+                    permission, server-error).
+  cases init        Add the full case checklist to every screen in screens.yaml
+                    that has none, so the whole app is planned in one pass.
+  assertions        Grade each flow (behavioural or smoke) and show where every
+                    assertion came from: [spec: ref] or guessed from code.
+  mutate [<id> ...] Break the app on purpose (sova/mutations.yaml), one change at a
+                    time, and report which changes no test noticed (survivors).
+  confirm <id> --by <who>
+                    A person confirmed a flow's guessed ([code]) assertions;
+                    mark them as spec and regenerate the spec.
   run [-- <playwright args>]
                     Run the generated suite.
   report [--open]   Build the report for the last run (Allure when installed,
@@ -95,9 +126,37 @@ function emitCommand(root: string, checkOnly: boolean): boolean {
   return ok;
 }
 
+/** On a phone the trails are the tests, so the trails are what gets linted. */
+function lintMobileCommand(root: string, config: ReturnType<typeof loadConfig>): number {
+  const platform = platformOf(config) as MobilePlatform;
+  const dir = join(root, config.trailsDir);
+  let errors = 0;
+  let warnings = 0;
+  let count = 0;
+  for (const path of walk(dir, (p) => p.endsWith("trail.yaml"))) {
+    count += 1;
+    let findings;
+    try {
+      findings = lintMobileTrail(readTrail(path), platform);
+    } catch (error) {
+      console.log(`  ${relative(root, path)}  error  not-a-trail: ${(error as Error).message}`);
+      errors += 1;
+      continue;
+    }
+    for (const f of findings) {
+      console.log(`  ${relative(root, path)}  step ${f.step || "-"}  ${f.severity}  ${f.rule}: ${f.message}`);
+      if (f.severity === "error") errors += 1;
+      else warnings += 1;
+    }
+  }
+  console.log(`${count} trails, ${errors} errors, ${warnings} warnings`);
+  return errors;
+}
+
 /** Lint every spec in the specs directory. Returns the number of errors. */
 function lintCommand(root: string): number {
   const config = loadConfig(root);
+  if (isMobile(config)) return lintMobileCommand(root, config);
   const specs = walk(join(root, config.specsDir), (path) => path.endsWith(".spec.ts"));
   let errors = 0;
   let warnings = 0;
@@ -112,25 +171,31 @@ function lintCommand(root: string): number {
 }
 
 function checkCommand(root: string, repeat: number): boolean {
-  console.log("1/3 specs match their trails");
+  console.log(isMobile(loadConfig(root)) ? "1/3 trails are ready to replay on a device" : "1/3 specs match their trails");
   if (!emitCommand(root, true)) return false;
 
-  console.log("\n2/3 Playwright practices");
+  console.log(isMobile(loadConfig(root)) ? "\n2/3 trail practices" : "\n2/3 Playwright practices");
   if (lintCommand(root) > 0) return false;
 
-  console.log(`\n3/3 stability: ${repeat} runs each, no retries`);
-  const report = measureStability(root, loadConfig(root), repeat);
+  console.log(repeat === 1 ? "\n3/3 run the suite once, no retries" : `\n3/3 stability: ${repeat} runs each, no retries`);
+  const config = loadConfig(root);
+  const report = measureSuite(root, config, repeat);
   if (report.failure) {
-    console.log(`Playwright could not run the suite:\n${report.failure}`);
+    console.log(`${isMobile(config) ? "The suite could not run" : "Playwright could not run the suite"}:\n${report.failure}`);
     return false;
   }
+  saveResults(root, GATE_RESULTS, { at: new Date().toISOString(), repeat, tests: report.tests });
   let stable = true;
   for (const test of report.tests) {
     const passed = test.passed === test.runs;
     if (!passed) stable = false;
-    console.log(`  ${passed ? "stable" : "FLAKY "}  ${test.passed}/${test.runs}  ${test.file} > ${test.title}`);
+    const word = passed ? (repeat > 1 ? "stable" : "passed") : repeat > 1 && test.passed > 0 ? "FLAKY " : "FAILED";
+    console.log(`  ${word}  ${test.passed}/${test.runs}  ${test.file} > ${test.title}`);
   }
-  console.log(stable ? "\nGate passed." : "\nGate failed: fix or re-record the tests marked FLAKY.");
+  console.log(stable ? "\nGate passed." : "\nGate failed: fix or re-record the tests marked FAILED or FLAKY.");
+  summaryCommand(root);
+  if (isMobile(config)) console.log("sessions ~/.trailblaze/logs (per-step screenshots, video, device log of every run; `trailblaze app` opens the viewer)");
+  else console.log("report   sova/.results/html/index.html (Playwright's report: traces, screenshots, video of failures; open with `sova report --open`)");
   return stable;
 }
 
@@ -150,7 +215,47 @@ function coverageCommand(root: string): boolean {
   const count = (status: string) => rows.filter((row) => row.status === status).length;
   console.log(`\n${count("covered")} covered, ${count("uncovered")} uncovered, ${count("skipped")} skipped of ${rows.length} screens`);
   if (rows.length === 0) console.log("sova/screens.yaml lists no screens yet.");
-  return rows.length > 0 && count("uncovered") === 0;
+  const caseRows = caseCoverage(screens, loadCases(root), run);
+  const sum = summarizeCases(caseRows);
+  console.log(
+    `cases: ${sum.covered} covered, ${sum.skipped} skipped, ${sum.na} n/a, ${sum.missing} missing of ${sum.total} required (${caseRows.length === 0 ? "none" : "valid, invalid, empty, boundary, permission, server-error"} per screen)`,
+  );
+  if (sum.missing > 0) {
+    const missing = caseRows.filter((r) => r.status === "missing");
+    for (const row of missing.slice(0, 40)) console.log(`  missing  ${row.screen} / ${row.kind}: ${row.detail}  (${CASE_HELP[row.kind]})`);
+    if (missing.length > 40) console.log(`  ... and ${missing.length - 40} more`);
+    if (!config.requireCases) console.log('  (not failing: set "requireCases": true in sova/config.json to make missing cases fail coverage)');
+  }
+  const casesOk = !config.requireCases || sum.missing === 0;
+  return rows.length > 0 && count("uncovered") === 0 && casesOk;
+}
+
+function assertionsCommand(root: string): number {
+  const config = loadConfig(root);
+  if (isMobile(config)) throw new UserError("`sova assertions` grades web trails. On a phone, `sova lint` reports trails that assert nothing.");
+  const run = emitAll(root, config, false);
+  const tally = { behavioural: 0, smoke: 0, none: 0, spec: 0, code: 0, untagged: 0 };
+  const queue: string[] = [];
+  for (const file of run.files) {
+    if (file.result.status === "skipped") continue;
+    const quality = gradeTrail(readTrail(join(root, config.trailsDir, file.id, "trail.yaml")));
+    tally[quality.grade] += 1;
+    console.log(`${quality.grade.padEnd(11)} ${file.id}`);
+    for (const a of quality.assertions) {
+      tally[a.source] += 1;
+      const tag = a.source === "spec" ? `spec${a.ref ? `: ${a.ref}` : ""}` : a.source === "code" ? "guessed from code" : "untagged";
+      console.log(`            ${a.strength.padEnd(6)} [${tag}] ${a.text}`);
+      if (a.source !== "spec") queue.push(`${file.id}: ${a.text}`);
+    }
+  }
+  console.log(`\nflows: ${tally.behavioural} behavioural, ${tally.smoke} smoke only, ${tally.none} with no assertion`);
+  console.log(`assertions: ${tally.spec} from spec, ${tally.code} guessed from code, ${tally.untagged} untagged`);
+  if (queue.length > 0) {
+    console.log("\nNeeds one confirmation from a person (is this the right expected result?):");
+    for (const line of queue) console.log(`  ${line}`);
+    console.log("Confirm a flow with: sova confirm <id> --by <name>");
+  }
+  return tally.none === 0 ? 0 : 1;
 }
 
 async function main(): Promise<number> {
@@ -159,7 +264,11 @@ async function main(): Promise<number> {
 
   switch (command) {
     case "init": {
+      const platform = flag(args, "--platform");
+      if (platform !== undefined && platform !== "android" && platform !== "ios" && platform !== "web") throw new UserError("--platform must be web, android or ios");
       const log = init(root, {
+        platform: platform === "android" || platform === "ios" ? platform : undefined,
+        appId: flag(args, "--app-id"),
         baseURL: flag(args, "--base-url"),
         startCommand: flag(args, "--start"),
         install: !args.includes("--no-install"),
@@ -184,7 +293,8 @@ async function main(): Promise<number> {
     case "act":
       return act(root, loadConfig(root), args);
     case "actions": {
-      for (const [name, action] of Object.entries(ACTIONS)) console.log(`  ${name.padEnd(7)} ${action.use}`);
+      const shown = isMobile(loadConfig(root)) ? MOBILE_ACTIONS : ACTIONS;
+      for (const [name, action] of Object.entries(shown)) console.log(`  ${name.padEnd(7)} ${action.use}`);
       console.log('\nEvery action needs -s "<what this step is for>". Refs come from `sova look`.');
       console.log("`sova act <action> --help` prints every argument an action takes.");
       return 0;
@@ -206,7 +316,7 @@ async function main(): Promise<number> {
     case "reset":
       return reset(root, loadConfig(root));
     case "login":
-      return login(root, loadConfig(root));
+      return login(root, loadConfig(root), args.includes("--as") ? args[args.indexOf("--as") + 1] : undefined);
     case "heal": {
       const id = args[0];
       if (!id) throw new UserError("Usage: sova heal <id>");
@@ -219,17 +329,64 @@ async function main(): Promise<number> {
     case "lint":
       return lintCommand(root) === 0 ? 0 : 1;
     case "check": {
-      const repeat = Number(flag(args, "--repeat") ?? "5");
+      const repeat = Number(flag(args, "--repeat") ?? "1");
       if (!Number.isInteger(repeat) || repeat < 1) throw new UserError("--repeat must be a positive whole number");
       return checkCommand(root, repeat) ? 0 : 1;
     }
+    case "summary":
+      return summaryCommand(root);
+    case "plan":
+      return planCommand(root);
     case "coverage":
       return coverageCommand(root) ? 0 : 1;
+    case "cases": {
+      if (args[0] !== "init") throw new UserError("Usage: sova cases init");
+      const changed = initCases(root);
+      console.log(changed === 0 ? "Every screen already has a cases list." : `Added the case checklist to ${changed} screen(s) in sova/screens.yaml. Fill in each case: trail: <id>, skip: <reason> or na: <reason>.`);
+      return 0;
+    }
+    case "assertions":
+      return assertionsCommand(root);
+    case "mutate": {
+      const config = loadConfig(root);
+      const all = loadMutations(root);
+      const wanted = args.filter((a) => !a.startsWith("--"));
+      const chosen = wanted.length > 0 ? all.filter((m) => wanted.includes(m.id)) : all;
+      if (chosen.length === 0) throw new UserError("No mutations to run.");
+      const results = mutate(root, config, chosen, (line) => console.log(line));
+      saveResults(root, MUTATION_RESULTS, { at: new Date().toISOString(), results: results.map((r) => ({ id: r.mutation.id, file: r.mutation.file, note: r.mutation.note, status: r.status, detail: r.detail })) });
+      summaryCommand(root);
+      const count = (status: string) => results.filter((r) => r.status === status).length;
+      console.log(`\n${count("killed")} killed, ${count("survived")} survived, ${count("invalid")} invalid, ${count("error")} errored of ${results.length}`);
+      for (const r of results.filter((x) => x.status !== "killed")) console.log(`  ${r.status}: ${r.mutation.id}${r.mutation.note ? ` - ${r.mutation.note}` : ""}${r.status === "survived" ? "" : ` (${r.detail})`}`);
+      if (count("survived") > 0) console.log("A survivor means no test protects that behaviour: add or strengthen a flow.");
+      return count("survived") + count("invalid") + count("error") === 0 ? 0 : 1;
+    }
+    case "confirm": {
+      const id = args[0];
+      const by = flag(args, "--by");
+      if (!id || !by) throw new UserError("Usage: sova confirm <trail id> --by <who confirmed the expected results>");
+      const config = loadConfig(root);
+      if (!hasTrail(root, config.trailsDir, id)) throw new UserError(`No trail ${id}.`);
+      const changed = confirmTrailFile(trailPath(root, config.trailsDir, id), by);
+      console.log(changed === 0 ? `${id} has no [code] assertions to confirm.` : `Confirmed ${changed} assertion(s) in ${id} (by ${by}).`);
+      return emitCommand(root, false) ? 0 : 1;
+    }
     case "run": {
       const separator = args.indexOf("--");
+      const runConfig = loadConfig(root);
+      if (isMobile(runConfig)) {
+        const extra = separator === -1 ? [] : args.slice(separator + 1);
+        const target = join(root, runConfig.trailsDir);
+        return runTool("trailblaze", [...runArgs(runConfig, target), ...extra], { cwd: root, stdio: "inherit" }).status ?? 1;
+      }
       return runTests(root, loadConfig(root), separator === -1 ? args : args.slice(separator + 1));
     }
     case "report":
+      if (isMobile(loadConfig(root))) {
+        console.log("Each run's screenshots, video and device log are under ~/.trailblaze/logs. `trailblaze app` opens the viewer. `sova summary` writes the one-page summary.");
+        return 0;
+      }
       return report(root, loadConfig(root), args.includes("--open"));
     case "skill": {
       if (args[0] === "show") {

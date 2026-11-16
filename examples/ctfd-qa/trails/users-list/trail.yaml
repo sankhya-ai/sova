@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: users-list
+
+trail:
+  - step: "Open the users list"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/users"
+
+  - step: "The regular user is listed"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=a >> text=qa-user >> visible=true >> nth=0"
+

@@ -1,0 +1,44 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: sign-in-bob
+
+trail:
+  - step: "Open /auth/login"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/auth/login
+
+  - step: "Type the bob username"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.APP_BOB_USER}}"
+            ref: "textbox \"Username or Email address\""
+
+  - step: "Type the bob password"
+    recording:
+      web:
+        - web_type:
+            text: "{{env.APP_BOB_PASSWORD}}"
+            ref: "textbox \"Password\""
+
+  - step: "Press Login"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Login\""
+
+  - step: "Open the settings page, only for signed-in users"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/user/settings/general
+
+  - step: "The account settings page is shown to the signed-in user"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "listitem \"Account Settings\""

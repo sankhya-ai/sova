@@ -1,0 +1,65 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: register-password-mismatch
+
+trail:
+  - step: "Open the registration page"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/auth/register
+
+  - step: "Type the username"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.dd}}"
+            ref: textbox "Username"
+
+  - step: "Type the email"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.d@example.com}}"
+            ref: textbox "Email address"
+
+  - step: "Type the password"
+    recording:
+      web:
+        - web_type:
+            text: P-ass-1234
+            ref: textbox "Password"
+
+  - step: "Repeat the password"
+    recording:
+      web:
+        - web_type:
+            text: Different-1234
+            ref: textbox "Confirm password"
+
+  - step: "Accept the terms"
+    recording:
+      web:
+        - web_click:
+            ref: checkbox "I accept the Terms of Service"
+
+  - step: "Press Register"
+    recording:
+      web:
+        - web_click:
+            ref: button "Register"
+
+  - step: "The error says the passwords differ [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.invalid-feedback
+            expected: Passwords must match.
+
+  - step: "The user stays on the registration page, not signed up [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: /auth/register

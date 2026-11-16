@@ -13,13 +13,19 @@ export interface TrailStep {
   kind: "trailhead" | "step" | "verify";
   /** Recorded web tool calls, or null when the step has no web recording. */
   calls: ToolCall[] | null;
+  /** Recorded mobile tool calls per platform. A platform is absent when the step has no recording for it. */
+  mobile: Partial<Record<MobilePlatform, ToolCall[]>>;
 }
+
+export type MobilePlatform = "android" | "ios";
 
 export interface Trail {
   title: string | null;
   tags: string[];
   /** True when the trail targets the web at all (declares a web device or has a web recording). */
   isWeb: boolean;
+  /** Mobile platforms the trail has any recording for, or declares a device for. */
+  mobilePlatforms: MobilePlatform[];
   steps: TrailStep[];
 }
 
@@ -50,6 +56,20 @@ function webSlot(recording: unknown): unknown {
   return key ? recording[key] : undefined;
 }
 
+/**
+ * The slot for one mobile platform: `android` or the first `android-*` classifier (`android-phone`),
+ * looked for under `recording:` and directly on the step (the unified form without the wrapper).
+ */
+export function mobileSlot(item: Dict, platform: MobilePlatform): unknown {
+  for (const holder of [item.recording, item]) {
+    if (!isDict(holder)) continue;
+    if (platform in holder) return holder[platform];
+    const key = Object.keys(holder).find((name) => name.startsWith(`${platform}-`));
+    if (key) return holder[key];
+  }
+  return undefined;
+}
+
 function toStep(item: unknown, forcedKind?: "trailhead"): TrailStep | null {
   if (!isDict(item)) return null;
   const verifyText = typeof item.verify === "string" ? item.verify : null;
@@ -61,6 +81,12 @@ function toStep(item: unknown, forcedKind?: "trailhead"): TrailStep | null {
     text: text.trim(),
     kind: forcedKind ?? (verifyText !== null || item.verify === true ? "verify" : "step"),
     calls: slot === undefined ? null : toCalls(slot),
+    mobile: Object.fromEntries(
+      (["android", "ios"] as const).flatMap((platform) => {
+        const found = mobileSlot(item, platform);
+        return found === undefined ? [] : [[platform, toCalls(found)]];
+      }),
+    ),
   };
 }
 
@@ -79,10 +105,15 @@ export function parseTrail(source: string): Trail {
     if (step) steps.push(step);
   }
   const declaresWeb = isDict(config.devices) && Object.keys(config.devices).some((k) => k.startsWith("web"));
+  const declared = isDict(config.devices) ? Object.keys(config.devices) : [];
+  const mobilePlatforms = (["android", "ios"] as const).filter(
+    (platform) => declared.some((k) => k.startsWith(platform)) || steps.some((step) => step.mobile[platform] !== undefined),
+  );
   return {
     title: typeof config.title === "string" ? config.title : null,
     tags: Array.isArray(config.tags) ? config.tags.filter((t): t is string => typeof t === "string") : [],
     isWeb: declaresWeb || steps.some((step) => step.calls !== null),
+    mobilePlatforms,
     steps,
   };
 }

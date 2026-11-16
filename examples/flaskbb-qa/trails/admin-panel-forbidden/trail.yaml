@@ -1,0 +1,25 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: admin-panel-forbidden
+
+trail:
+  - step: "Open the management panel as a regular member"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/admin/
+
+  - step: "The member is sent back to the forum index [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: localhost:5000/$
+
+  - step: "The refusal message is shown [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.alert-danger
+            expected: You are not allowed to access the management panel

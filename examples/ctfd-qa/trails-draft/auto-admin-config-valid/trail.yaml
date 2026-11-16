@@ -1,0 +1,33 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-config valid
+
+trail:
+  - step: "Open /admin/config"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/config"
+
+  - step: "Type Event Name\n\t\t\t\tWhen no logo is specified, the CTF's name is used instead."
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Event Name\n\t\t\t\tWhen no logo is specified, the CTF's name is used instead.\""
+
+  - step: "Type ctf_description"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"ctf_description\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Update\""
+

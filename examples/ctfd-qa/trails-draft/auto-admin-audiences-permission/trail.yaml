@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-audiences permission
+
+trail:
+  - step: "Open /admin/audiences signed out"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/audiences"
+
+  - step: "The sign-in page is shown"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: "/login"
+

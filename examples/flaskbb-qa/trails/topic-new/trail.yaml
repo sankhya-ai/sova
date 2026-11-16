@@ -1,0 +1,44 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: topic-new
+
+trail:
+  - step: "Open the new topic form in Welcome"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/1-welcome/topic/new
+
+  - step: "Type a title"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.Planning notes}}"
+            ref: textbox "Topic title"
+
+  - step: "Type the post content"
+    recording:
+      web:
+        - web_type:
+            text: Notes about the release.
+            ref: textbox "Content"
+
+  - step: "Press Post topic"
+    recording:
+      web:
+        - web_click:
+            ref: button "Post topic"
+
+  - step: "The member lands on the new topic page [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: /topic/
+
+  - step: "The posted content is shown [code]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: paragraph "Notes about the release."

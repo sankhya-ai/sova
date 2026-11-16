@@ -101,6 +101,10 @@ test("each web tool maps to the matching Playwright call", () => {
   assert.deepEqual(lines("web_verifyElementVisible", button), [`await expect(${go}).toBeVisible();`]);
   assert.deepEqual(lines("web_verifyValue", { ...button, expected: "x" }), [`await expect(${go}).toContainText('x');`]);
   assert.deepEqual(lines("web_verifyValue", { ...button, type: "value", expected: "x" }), [`await expect(${go}).toHaveValue('x');`]);
+  const box = { ref: 'textbox "Name"', expected: "x" };
+  assert.match(lines("web_verifyValue", box)[0]!, /toHaveValue\('x'\)/, "TEXT on a textbox reads the input value");
+  assert.match(lines("web_verifyValue", { ...box, type: "TEXT" })[0]!, /toHaveValue/);
+  assert.match(lines("web_verifyValue", { ref: 'button "Go"', expected: "x" })[0]!, /toContainText/, "TEXT on a button stays text");
   assert.deepEqual(lines("web_snapshot", { screenName: "home" }), []);
 });
 
@@ -355,4 +359,43 @@ trail:
   assert.match(login.spec!, /storageState\(\{ path: process\.env\.SOVA_AUTH_STATE!, indexedDB: true \}\)/);
   assert.match(login.spec!, /test\.use\(\{ storageState: \{ cookies: \[\], origins: \[\] \} \}\)/);
   assert.doesNotMatch(emitTrail(trail, "x", "x", DEFAULTS).spec!, /storageState/);
+});
+
+test("lint warns on a literal email typed into a field", () => {
+  const found = lintSource("test('x', async ({ page }) => {\n  await page.getByRole('textbox', { name: 'Email' }).fill('ada@example.com');\n  await expect(page).toHaveURL(/x/);\n});\n");
+  assert.ok(found.some((f) => f.rule === "unique-test-data" && f.severity === "warning"));
+  assert.ok(!lintSource("await page.getByRole('textbox').fill(env('APP_TEST_EMAIL'));\nexpect(1)").some((f) => f.rule === "unique-test-data"));
+});
+
+import { humanizeTitle, stateEnv } from "../src/emit.js";
+
+test("a trail id becomes a readable title; a real sentence is left alone", () => {
+  assert.equal(humanizeTitle("customers-create-valid"), "Customers create valid");
+  assert.equal(humanizeTitle("Log in with a wrong password"), "Log in with a wrong password");
+});
+
+test("a unique value, and a fixtures import, reach the generated spec", () => {
+  const trail = parseTrail(
+    "config:\n  devices:\n    web:\n      driver: PLAYWRIGHT_NATIVE\ntrail:\n" +
+      '  - step: "Type the email"\n    recording:\n      web:\n        - web_type:\n            ref: "textbox \\"Email\\""\n            text: "{{unique.ada@example.com}}"\n',
+  );
+  const out = emitTrail(trail, "t", "customers-create", { baseURL: "http://x", fixturesImport: "../fixtures" });
+  assert.equal(out.status, "emitted");
+  assert.match(out.spec!, /import \{ expect, test \} from '\.\.\/fixtures';/);
+  assert.match(out.spec!, /const unique = makeUnique\(\);/);
+  assert.match(out.spec!, /\.fill\(unique\('ada@example\.com'\)\)/);
+  assert.match(out.spec!, /test\('Customers create'/);
+  assert.ok(!lintSource(out.spec!).some((f) => f.rule === "unique-test-data"));
+});
+
+test("a second role saves its own session, and a trail can start from it", () => {
+  const trail = parseTrail(
+    "config:\n  devices:\n    web:\n      driver: PLAYWRIGHT_NATIVE\ntrail:\n" +
+      '  - step: "Open"\n    recording:\n      web:\n        - web_navigate:\n            url: http://x/\n',
+  );
+  const setup = emitTrail(trail, "t", "sign-in-user", { baseURL: "http://x" }, "login", { saveEnv: "SOVA_AUTH_STATE_USER" });
+  assert.match(setup.spec!, /process\.env\.SOVA_AUTH_STATE_USER!/);
+  const spec = emitTrail(trail, "t", "t", { baseURL: "http://x" }, "test", { useEnv: "SOVA_AUTH_STATE_USER" });
+  assert.match(spec.spec!, /test\.use\(\{ storageState: process\.env\.SOVA_AUTH_STATE_USER! \}\);/);
+  assert.equal(stateEnv("Read Only"), "SOVA_AUTH_STATE_READ_ONLY");
 });

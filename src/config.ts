@@ -13,6 +13,14 @@ export interface SovaConfig {
   specsDir: string;
   /** The Playwright config `sova run` and `sova check` use. */
   playwrightConfig: string;
+  /**
+   * What the app runs on. "web" (the default) generates Playwright tests. "android" and "ios" keep
+   * Trailblaze's own recordings as the tests and replay them with `trailblaze run`, no model involved.
+   * Left unset it follows `device`: a device starting with android or ios means that platform.
+   */
+  platform?: "web" | "android" | "ios";
+  /** Mobile only: the app's package name (Android) or bundle id (iOS). `sova open` launches it. */
+  appId?: string;
   /** The browser device the driving commands (`open`, `look`, `act`) control. */
   device: string;
   /**
@@ -20,11 +28,31 @@ export interface SovaConfig {
    * every other test starts from the session it leaves. Trails listed in `anonymous` start
    * signed out instead (the sign-in page's own tests).
    */
-  login?: { trail: string; anonymous?: string[] };
+  login?: {
+    trail: string;
+    anonymous?: string[];
+    /**
+     * More sign-ins for apps with roles. `trail` above is the default role (usually the
+     * admin or the main user). Each entry here is another role with its own sign-in flow.
+     */
+    roles?: Record<string, { trail: string }>;
+    /** Trail id -> role name. That trail starts from that role's session instead of the default one. */
+    as?: Record<string, string>;
+  };
   /** How many tests run at once. Leave unset for Playwright's default. */
   workers?: number;
   /** How long an assertion waits, in milliseconds. Playwright's default is 5000. */
   expectTimeout?: number;
+  /** When true, `sova coverage` fails while a required case has no trail, skip or n/a reason. */
+  requireCases?: boolean;
+  /** Shell command that rebuilds the app after `sova mutate` edits a source file. Leave unset when the dev server reloads on its own. */
+  mutationRebuild?: string;
+  /**
+   * Shell command that puts the app's data back to its seed state (empty a database, clear a cache).
+   * `sova mutate` runs it before the baseline and before every mutation's test run, so state a
+   * broken build leaves behind (a duplicate account, a stuck rate limit) cannot fail later mutations.
+   */
+  mutationReset?: string;
 }
 
 /** Where secrets for flows live. Never committed; `sova init` git-ignores it. */
@@ -65,5 +93,10 @@ export function loadConfig(root: string): SovaConfig {
   } catch (error) {
     throw new UserError(`${CONFIG_PATH} is not valid JSON: ${(error as Error).message}`);
   }
-  return { ...DEFAULTS, ...(parsed as Partial<SovaConfig>) };
+  const config = { ...DEFAULTS, ...(parsed as Partial<SovaConfig>) };
+  // A phone project names its platform; the browser device default must not leak into its Trailblaze calls.
+  if ((config.platform === "android" || config.platform === "ios") && !config.device.startsWith(config.platform)) {
+    config.device = config.platform;
+  }
+  return config;
 }

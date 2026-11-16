@@ -1,0 +1,46 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: admin-add-user-valid
+
+trail:
+  - step: "Open the add-user form"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/admin/users/add
+
+  - step: "Type a new username"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.added}}"
+            ref: textbox "Username"
+
+  - step: "Type a new email"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.added@example.com}}"
+            ref: textbox "Email address"
+
+  - step: "Type a password"
+    recording:
+      web:
+        - web_type:
+            text: Pass-12345
+            ref: textbox "Password"
+
+  - step: "Press Save"
+    recording:
+      web:
+        - web_click:
+            ref: button "Save"
+
+  - step: "The user-added message is shown [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.alert-success
+            expected: User added.

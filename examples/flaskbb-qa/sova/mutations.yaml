@@ -1,0 +1,81 @@
+mutations:
+- id: old-password-not-checked
+  file: flaskbb/user/services/validators.py
+  find: 'if not model.check_password(changeset.old_password):'
+  replace: 'if False:'
+  note: a wrong old password is accepted when changing the password
+- id: same-password-allowed
+  file: flaskbb/user/services/validators.py
+  find: 'if model.check_password(changeset.new_password):'
+  replace: 'if False:'
+  note: the new password may equal the old one
+- id: old-email-not-checked
+  file: flaskbb/user/services/validators.py
+  find: 'if model.email != changeset.old_email:'
+  replace: 'if False:'
+  note: a wrong old email is accepted when changing the email
+- id: change-email-duplicate-allowed
+  file: flaskbb/user/services/validators.py
+  find: 'if others != 0:'
+  replace: 'if False:'
+  note: an email another member uses can be taken
+- id: register-username-length-unchecked
+  file: flaskbb/auth/services/registration.py
+  find: 'if not (self._requirements.min <= len(user_info.username) <= self._requirements.max):'
+  replace: 'if False:'
+  note: any username length can register
+- id: register-blacklist-unchecked
+  file: flaskbb/auth/services/registration.py
+  find: 'if is_blacklisted:  # pragma: no branch'
+  replace: 'if False:'
+  note: forbidden usernames can register
+- id: register-duplicate-username-allowed
+  file: flaskbb/auth/services/registration.py
+  find: "if count != 0:  # pragma: no branch\n            raise ValidationError(\n                \"username\","
+  replace: "if False:  # pragma: no branch\n            raise ValidationError(\n                \"username\","
+  note: a taken username can register again
+- id: register-duplicate-email-allowed
+  file: flaskbb/auth/services/registration.py
+  find: "if count != 0:  # pragma: no branch\n            raise ValidationError(\n                \"email\","
+  replace: "if False:  # pragma: no branch\n            raise ValidationError(\n                \"email\","
+  note: a taken email can register again
+- id: login-any-password
+  file: flaskbb/auth/services/authentication.py
+  find: 'if check_password_hash(user.password, secret):'
+  replace: 'if True:'
+  note: any password signs in
+- id: admin-panel-open-to-members
+  file: flaskbb/management/views.py
+  find: "class ManagementOverview(MethodView):\n    decorators = [\n        allows.requires(\n            IsAtleastModerator,"
+  replace: "class ManagementOverview(MethodView):\n    decorators = [\n        allows.requires(\n            (lambda *a, **k: True),"
+  note: the management overview is open to every member
+- id: edit-any-post-allowed
+  file: flaskbb/forum/views.py
+  find: "class EditPost(MethodView):\n    decorators = [\n        allows.requires(\n            ForRequest(can_edit_post, request_post),"
+  replace: "class EditPost(MethodView):\n    decorators = [\n        allows.requires(\n            ForRequest(lambda *a, **k: True, request_post),"
+  note: any member can open the edit form of another member's post
+- id: details-message-changed
+  file: flaskbb/user/views.py
+  find: flash(_("User details updated."), "success")
+  replace: flash(_("Nothing happened."), "success")
+  note: the success message after saving user details is wrong
+- id: logout-message-changed
+  file: flaskbb/auth/views.py
+  find: flash(_("Logged out"), "success")
+  replace: flash(_("Bye"), "success")
+  note: logging out shows the wrong message
+- id: admin-add-user-no-message
+  file: flaskbb/management/views.py
+  find: flash(_("User added."), "success")
+  replace: flash(_("Done."), "success")
+  note: adding a user shows the wrong message
+- id: login-empty-password-allowed
+  file: flaskbb/auth/forms.py
+  find: validators=[DataRequired(message=_("Please enter your password."))],
+  replace: validators=[],
+  note: an empty password is not flagged by the form
+- id: admin-duplicate-username
+  file: flaskbb/management/forms.py
+  find: raise ValidationError(_("This username is already taken."))
+  replace: pass
+  note: the admin form accepts a taken username

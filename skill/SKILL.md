@@ -60,6 +60,20 @@ screens:
 payments, sending email or messages, deleting real data, changing credentials, third
 party OAuth. Offer the alternative (a sandbox account, a seeded record, a `skip:`).
 
+## 1b. Plan the cases
+
+For a new app, read the `sova-planning` skill first: how to crawl, decide expected results, stay safe and prove the suite.
+
+Run `sova cases init`. Every screen gets a checklist: `valid`, `invalid`, `empty`, `boundary`,
+`permission`, `server-error`. For each one, decide from the code:
+
+- a flow covers it: `trail: <id>`;
+- it matters but you will not test it: `skip: <reason>`;
+- it cannot happen on this screen: `na: <reason>` (a read-only list has no invalid input).
+
+Never leave a case blank to make coverage look better. `sova coverage` prints cases missing,
+and fails on them when `sova/config.json` has `"requireCases": true`.
+
 ## 2. Drive each flow
 
 One flow per behaviour, not per screen: "log in", "log in with a wrong password",
@@ -95,6 +109,12 @@ Rules that decide whether the generated test is any good:
   ids that change between runs.
 - **Each flow starts from a fresh browser** (`sova save` closes it) and sets up what it
   needs. Never rely on a previous flow having run.
+- **Tag where the expected result came from.** End the `-s` text of each assertion with
+  `[spec: <ticket, doc, schema or the person who said so>]` or `[code]` when you only read it
+  in the app's code. `[code]` means it may be locking in a bug; `sova assertions` queues those
+  for one person to confirm (`sova confirm <id> --by <name>`).
+- **Prove more than the page loaded.** A flow that only opens a page and sees its heading is
+  graded `smoke`. Do something (type, click, submit) and assert the result.
 - **Never wait for time.** If a step needs the page to settle, assert the thing you are
   waiting for with `see`.
 - **No secrets in a flow.** Use a throwaway test account, and keep its password in
@@ -146,8 +166,29 @@ A test that fails the gate is not done. Read the failure, then decide which is t
 - the flow asserted something unstable: drive it again with a stable assertion;
 - the test depends on leftover state: make the flow set up its own state.
 
-Never make the gate pass by deleting an assertion, adding a wait, or lowering
-`--repeat`.
+Never make the gate pass by deleting an assertion, adding a wait, or adding
+retries. Vet a newly written test with `sova check --repeat 5` before you trust it;
+the normal gate runs each test once.
+
+### Prove the tests can fail
+
+Passing tests only matter if they would fail when the app is wrong. List deliberate bugs in
+`sova/mutations.yaml` (read the code, break a validation, a redirect, a message):
+
+```yaml
+mutations:
+  - id: email-not-validated
+    file: src/signup/validate.ts
+    find: "if (!isEmail(email)) return error;"
+    replace: ""
+    note: an invalid email can sign up
+```
+
+If the app must be rebuilt to see a change, set `"mutationRebuild"` in `sova/config.json`.
+If a broken build can leave data behind (a duplicate account, a stuck rate limit), set `"mutationReset"` to a command that puts the data back to its seed state. It runs before the baseline and before every mutation, so one mutation cannot fail the next.
+`sova mutate` applies each change, runs the suite, restores the file, and lists survivors.
+A survivor is either a missing test or a change that does nothing (another layer blocks it).
+Decide which, say so, and never weaken a test to get a kill.
 
 ## 4. Hand over
 
@@ -171,3 +212,24 @@ For CI: `npx --no-install sova emit --check && npx --no-install sova run`.
   flows, gate.
 - A screen was removed: delete its `trails/<id>` folders and its entry;
   `sova emit --check` names the orphaned specs to delete.
+
+## Data that must be unique, and fixtures
+
+When a flow creates a record, type its unique field with `text=unique:<value>` (for example `text=unique:ada@example.com`). The spec makes it unique per run. Shared setup, page objects and cleanup go in `sova/fixtures.ts`; register what a test created with the `cleanup` fixture.
+When the app shows an error, assert the error text. Only fall back to "still on the URL" when nothing is shown.
+
+## Phone apps (Android, iOS)
+
+If `sova/config.json` has `"platform": "android"` or `"ios"`, there is no Playwright and no
+generated spec: the Trailblaze recording in `trails/<id>/trail.yaml` is the test, and the gate replays
+it with `trailblaze run --llm none` (no model). Same loop as above (`sova open`, `look`, `act`,
+`save`, `check`), with these differences:
+
+- `sova open` launches `appId`. Refs from `sova look` are content hashes (`y778`); `sova act tap ref=y778 -s "..."`.
+- Assert with a recorded `assertVisibleBySelector`, never a bare `verify:` step (that needs a model).
+- Do not tap by coordinates (`tapOnPoint`); `sova lint` blocks it.
+- `sova emit` writes nothing; it says which trails are ready or blocked. `sova check` needs a connected
+  device or emulator and says so if there is none.
+- `mutationRebuild` must rebuild and reinstall the app on the device.
+- This path has not been run on a device yet. If something fails in a way the docs do not explain,
+  tell the user plainly. Details: docs/mobile.md in the sova repo.

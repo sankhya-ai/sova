@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-challenges-id permission
+
+trail:
+  - step: "Open /admin/challenges/:id signed out"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/challenges/1"
+
+  - step: "The sign-in page is shown"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: "/login"
+

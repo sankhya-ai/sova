@@ -1,0 +1,18 @@
+killed   old-password-not-checked  (caught by password-wrong-old.spec.ts > Password wrong old)
+killed   same-password-allowed  (caught by password-same-as-old.spec.ts > Password same as old)
+killed   old-email-not-checked  (caught by email-wrong-old.spec.ts > Email wrong old)
+killed   change-email-duplicate-allowed  (caught by email-taken.spec.ts > Email taken)
+killed   register-username-length-unchecked  (caught by register-username-too-short.spec.ts > Register username too short)
+killed   register-blacklist-unchecked  (caught by register-forbidden-username.spec.ts > Register forbidden username)
+killed   register-duplicate-username-allowed  (caught by register-taken-username.spec.ts > Register taken username)
+killed   register-duplicate-email-allowed  (caught by register-taken-email.spec.ts > Register taken email)
+killed   login-any-password  (caught by login-wrong-password.spec.ts > Login wrong password)
+killed   admin-panel-open-to-members  (caught by admin-panel-forbidden.spec.ts > Admin panel forbidden)
+killed   edit-any-post-allowed  (caught by post-edit-forbidden.spec.ts > Post edit forbidden)
+killed   details-message-changed  (caught by details-save.spec.ts > Details save)
+killed   logout-message-changed  (caught by logout.spec.ts > Logout)
+killed   admin-add-user-no-message  (caught by admin-add-user-valid.spec.ts > Admin add user valid)
+killed   login-empty-password-allowed  (caught by hand-login-empty.spec.ts > Login with an empty password is refused)
+killed   admin-duplicate-username  (caught by admin-add-user-taken.spec.ts > Admin add user taken)
+
+16 killed, 0 survived, 0 invalid, 0 errored of 16

@@ -1,0 +1,26 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-submissions-incorrect valid
+
+trail:
+  - step: "Open /admin/submissions/incorrect"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/submissions/incorrect"
+
+  - step: "Type Search for matching submission"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Search for matching submission\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+

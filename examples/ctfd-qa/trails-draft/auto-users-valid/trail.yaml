@@ -1,0 +1,26 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto users valid
+
+trail:
+  - step: "Open /users"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/users"
+
+  - step: "Type Search for matching users"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Search for matching users\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+

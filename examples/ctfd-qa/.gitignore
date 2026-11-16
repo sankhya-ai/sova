@@ -1,0 +1,9 @@
+node_modules/
+ctfd
+seed.db
+sova/.env
+sova/.auth/
+sova/.results/
+.claude/
+.agents/
+AGENTS.md

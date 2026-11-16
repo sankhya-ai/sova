@@ -1,0 +1,19 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: admin-area-redirects-user
+
+trail:
+  - step: "Open the admin users page as a regular user"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/users"
+
+  - step: "The login form is shown instead of the admin users page"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "textbox \"User Name or Email\""
+

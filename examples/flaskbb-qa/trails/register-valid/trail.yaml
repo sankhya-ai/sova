@@ -1,0 +1,64 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: register-valid
+
+trail:
+  - step: "Open the registration page"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/auth/register
+
+  - step: "Type a new username"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.newuser}}"
+            ref: textbox "Username"
+
+  - step: "Type a new email"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.newuser@example.com}}"
+            ref: textbox "Email address"
+
+  - step: "Type a password"
+    recording:
+      web:
+        - web_type:
+            text: Newuser-Pass-1
+            ref: textbox "Password"
+
+  - step: "Repeat the password"
+    recording:
+      web:
+        - web_type:
+            text: Newuser-Pass-1
+            ref: textbox "Confirm password"
+
+  - step: "Accept the terms"
+    recording:
+      web:
+        - web_click:
+            ref: checkbox "I accept the Terms of Service"
+
+  - step: "Press Register"
+    recording:
+      web:
+        - web_click:
+            ref: button "Register"
+
+  - step: "The new username is shown in the navbar, signed in [code]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: css=.navbar a[href*="/user/newuser-"]
+
+  - step: "The new member lands on the forum index [code]"
+    recording:
+      web:
+        - web_waitForUrl:
+            pattern: localhost:5000/$

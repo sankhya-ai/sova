@@ -1,0 +1,39 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: details-save
+
+trail:
+  - step: "Open the user details"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/user/settings/user-details
+
+  - step: "Type a location"
+    recording:
+      web:
+        - web_type:
+            text: Lucknow
+            ref: textbox "Location"
+
+  - step: "Press Save"
+    recording:
+      web:
+        - web_click:
+            ref: button "Save"
+
+  - step: "The success message is shown [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.alert-success
+            expected: User details updated.
+
+  - step: "The saved location is shown in the field [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: textbox "Location"
+            expected: Lucknow
