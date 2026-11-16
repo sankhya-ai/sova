@@ -1,0 +1,61 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto settings valid
+
+trail:
+  - step: "Open /settings"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/settings"
+
+  - step: "Type User Name"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"User Name\""
+
+  - step: "Type Email"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Email\""
+
+  - step: "Type Current Password"
+    recording:
+      web:
+        - web_type:
+            text: "plan-pass-123"
+            ref: "textbox \"Current Password\""
+
+  - step: "Type Password"
+    recording:
+      web:
+        - web_type:
+            text: "plan-pass-123"
+            ref: "textbox \"Password\""
+
+  - step: "Type Affiliation"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Affiliation\""
+
+  - step: "Type Website"
+    recording:
+      web:
+        - web_type:
+            text: "https://example.com"
+            ref: "textbox \"Website\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+

@@ -1,0 +1,25 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-challenges empty
+
+trail:
+  - step: "Open /admin/challenges"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/challenges"
+
+  - step: "Submit with nothing filled in"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "The first required field is still on screen"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "textbox \"Search for matching challenge\""
+

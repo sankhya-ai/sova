@@ -1,0 +1,47 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-pages-id valid
+
+trail:
+  - step: "Open /admin/pages/:id"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/pages/:id"
+
+  - step: "Type Route"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Route\""
+
+  - step: "Type Route"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Route\""
+
+  - step: "Type content"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"content\""
+
+  - step: "Type "
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Save\""
+

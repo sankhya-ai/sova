@@ -1,0 +1,33 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-audiences-new valid
+
+trail:
+  - step: "Open /admin/audiences/new"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/audiences/new"
+
+  - step: "Type Name"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Name\""
+
+  - step: "Type Description"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"Description\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Create\""
+

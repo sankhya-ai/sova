@@ -1,0 +1,26 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: auto admin-challenges-new valid
+
+trail:
+  - step: "Open /admin/challenges/new"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/admin/challenges/new"
+
+  - step: "Type flag"
+    recording:
+      web:
+        - web_type:
+            text: "sova-plan"
+            ref: "textbox \"flag\""
+
+  - step: "Submit the form"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Finish\""
+

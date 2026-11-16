@@ -1,0 +1,509 @@
+# Drafted by `sova plan` from the running app. Review it, then merge it into screens.yaml.
+screens:
+  - id: home
+    route: /
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-home-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: users
+    route: /users
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-users-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-users-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: scoreboard
+    route: /scoreboard
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-scoreboard-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: challenges
+    route: /challenges
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-challenges-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-challenges-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-statistics
+    route: /admin/statistics
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-statistics-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-statistics-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: notifications
+    route: /notifications
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-notifications-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: user
+    route: /user
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-user-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-user-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: settings
+    route: /settings
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-settings-valid
+      - kind: invalid
+        trail: auto-settings-invalid
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-settings-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: users-id
+    route: /users/:id
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-users-id-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        na: page is open to signed-out visitors
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-notifications
+    route: /admin/notifications
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-notifications-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-notifications-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-pages
+    route: /admin/pages
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-pages-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-pages-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-pages-new
+    route: /admin/pages/new
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-pages-new-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-pages-new-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-users
+    route: /admin/users
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-users-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-users-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-users-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-scoreboard
+    route: /admin/scoreboard
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-scoreboard-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-scoreboard-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-challenges
+    route: /admin/challenges
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-challenges-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-challenges-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-challenges-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-modules
+    route: /admin/modules
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-modules-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-modules-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-audiences
+    route: /admin/audiences
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-audiences-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-audiences-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-submissions
+    route: /admin/submissions
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-submissions-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-submissions-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-submissions-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-submissions-correct
+    route: /admin/submissions/correct
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-submissions-correct-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-submissions-correct-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-submissions-correct-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-submissions-incorrect
+    route: /admin/submissions/incorrect
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-submissions-incorrect-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-submissions-incorrect-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-submissions-incorrect-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-config
+    route: /admin/config
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-config-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-config-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-pages-id
+    route: /admin/pages/:id
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-pages-id-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-pages-id-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-users-new
+    route: /admin/users/new
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-users-new-valid
+      - kind: invalid
+        trail: auto-admin-users-new-invalid
+      - kind: empty
+        trail: auto-admin-users-new-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-users-new-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-users-id
+    route: /admin/users/:id
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-users-id-valid
+      - kind: invalid
+        trail: auto-admin-users-id-invalid
+      - kind: empty
+        trail: auto-admin-users-id-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-users-id-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-challenges-new
+    route: /admin/challenges/new
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-challenges-new-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-challenges-new-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-challenges-id
+    route: /admin/challenges/:id
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-challenges-id-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        na: no required field declared
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-challenges-id-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-modules-new
+    route: /admin/modules/new
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-modules-new-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-modules-new-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-modules-new-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-audiences-new
+    route: /admin/audiences/new
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-audiences-new-valid
+      - kind: invalid
+        na: no typed field to get wrong from the markup alone (needs a person to name a
+          rule)
+      - kind: empty
+        trail: auto-admin-audiences-new-empty
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-audiences-new-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
+  - id: admin-reset
+    route: /admin/reset
+    trails: []
+    cases:
+      - kind: valid
+        trail: auto-admin-reset-valid
+      - kind: invalid
+        na: no form on this page
+      - kind: empty
+        na: no form on this page
+      - kind: boundary
+        na: no length limit declared in the markup (server rules cannot be seen from the
+          page)
+      - kind: permission
+        trail: auto-admin-reset-permission
+      - kind: server-error
+        skip: cannot be made to fail on demand from the page
