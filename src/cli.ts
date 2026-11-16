@@ -45,7 +45,9 @@ Usage: sova <command> [options]
   lint              Check the generated specs against Playwright practices.
   check [--repeat <n>]
                     The gate: emit is current, lint has no errors, and every
-                    test passes <n> runs in a row (default 5) with no retries.
+                    test passes once with no retries (like plain Playwright).
+                    --repeat <n> runs each test n times in a row: use it to vet
+                    newly written tests before trusting them.
   plan              Crawl the running app and draft the screen map, the case plan and a first flow
                     per case (trails-draft/, sova/screens.plan.yaml). Drafts need a person to add
                     the expected outcome. Nothing existing is overwritten.
@@ -142,7 +144,7 @@ function checkCommand(root: string, repeat: number): boolean {
   console.log("\n2/3 Playwright practices");
   if (lintCommand(root) > 0) return false;
 
-  console.log(`\n3/3 stability: ${repeat} runs each, no retries`);
+  console.log(repeat === 1 ? "\n3/3 run the suite once, no retries" : `\n3/3 stability: ${repeat} runs each, no retries`);
   const report = measureStability(root, loadConfig(root), repeat);
   if (report.failure) {
     console.log(`Playwright could not run the suite:\n${report.failure}`);
@@ -153,9 +155,10 @@ function checkCommand(root: string, repeat: number): boolean {
   for (const test of report.tests) {
     const passed = test.passed === test.runs;
     if (!passed) stable = false;
-    console.log(`  ${passed ? "stable" : "FLAKY "}  ${test.passed}/${test.runs}  ${test.file} > ${test.title}`);
+    const word = passed ? (repeat > 1 ? "stable" : "passed") : repeat > 1 && test.passed > 0 ? "FLAKY " : "FAILED";
+    console.log(`  ${word}  ${test.passed}/${test.runs}  ${test.file} > ${test.title}`);
   }
-  console.log(stable ? "\nGate passed." : "\nGate failed: fix or re-record the tests marked FLAKY.");
+  console.log(stable ? "\nGate passed." : "\nGate failed: fix or re-record the tests marked FAILED or FLAKY.");
   summaryCommand(root);
   console.log("report   sova/.results/html/index.html (Playwright's report: traces, screenshots, video of failures; open with `sova report --open`)");
   return stable;
@@ -285,7 +288,7 @@ async function main(): Promise<number> {
     case "lint":
       return lintCommand(root) === 0 ? 0 : 1;
     case "check": {
-      const repeat = Number(flag(args, "--repeat") ?? "5");
+      const repeat = Number(flag(args, "--repeat") ?? "1");
       if (!Number.isInteger(repeat) || repeat < 1) throw new UserError("--repeat must be a positive whole number");
       return checkCommand(root, repeat) ? 0 : 1;
     }

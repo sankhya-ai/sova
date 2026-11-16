@@ -69,7 +69,7 @@ function cards(input: SummaryInput): string {
   const out: string[] = [];
   if (input.gate) {
     const stable = input.gate.tests.filter((t) => t.passed === t.runs).length;
-    out.push(`<div class="card"><b>${stable} / ${input.gate.tests.length}</b><span>tests stable (${input.gate.repeat} runs each, no retries)</span></div>`);
+    out.push(`<div class="card"><b>${stable} / ${input.gate.tests.length}</b><span>tests passed${input.gate.repeat > 1 ? ` (${input.gate.repeat} runs each, no retries)` : " (one run, no retries)"}</span></div>`);
   } else out.push(`<div class="card"><b>none</b><span>no gate run yet: <code>sova check</code></span></div>`);
   if (input.mutations) {
     const r = input.mutations.results;
@@ -87,9 +87,9 @@ function gateSection(gate?: GateResults): string {
   const rows = gate.tests.map((t) => {
     const ok = t.passed === t.runs;
     const pct = t.runs === 0 ? 0 : Math.round((t.passed / t.runs) * 100);
-    return `<tr><td>${esc(t.file)}</td><td>${esc(t.title)}</td><td>${t.passed} / ${t.runs}</td><td><div class="bar" title="${pct}%"><i style="width:${pct}%"></i><i class="x" style="width:${100 - pct}%"></i></div></td><td><span class="badge ${ok ? "ok" : "bad"}">${ok ? "stable" : "flaky"}</span></td></tr>`;
+    return `<tr><td>${esc(t.file)}</td><td>${esc(t.title)}</td><td>${t.passed} / ${t.runs}</td><td><div class="bar" title="${pct}%"><i style="width:${pct}%"></i><i class="x" style="width:${100 - pct}%"></i></div></td><td><span class="badge ${ok ? "ok" : "bad"}">${ok ? (gate.repeat > 1 ? "stable" : "passed") : gate.repeat > 1 && t.passed > 0 ? "flaky" : "failed"}</span></td></tr>`;
   });
-  return `<h2>Gate: stability</h2><p class="note">Every test run ${gate.repeat} times in a row, retries off. Run at ${esc(gate.at)}.</p><div class="wrap"><table><tr><th>File</th><th>Test</th><th>Passed</th><th></th><th></th></tr>${rows.join("")}</table></div>`;
+  return `<h2>Gate: test results</h2><p class="note">${gate.repeat > 1 ? `Every test run ${gate.repeat} times in a row to vet it, retries off.` : "Every test run once, retries off."} Run at ${esc(gate.at)}.</p><div class="wrap"><table><tr><th>File</th><th>Test</th><th>Passed</th><th></th><th></th></tr>${rows.join("")}</table></div>`;
 }
 
 function mutationSection(m?: MutationResults): string {

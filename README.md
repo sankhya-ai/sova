@@ -39,7 +39,7 @@ is flaky or asserts nothing.
 >
 > **Your agent:** *maps 21 screens from the router · drives each flow in a browser · saves 11 tests*
 >
-> **sova check:** `stable 5/5` for every test. **Gate passed.**
+> **sova check:** `passed` for every test. **Gate passed.**
 
 ## What it does
 
@@ -49,7 +49,7 @@ is flaky or asserts nothing.
 | **Drives a real browser** | `sova open`, `sova look`, `sova act`. Each step carries a sentence saying what it is for, and that sentence becomes the step name in the test. |
 | **Writes plain Playwright** | One `.spec.ts` per flow, with role and label locators and web-first assertions. No sova runtime in the tests: `npx playwright test` runs them. |
 | **Signs in once** | One sign-in flow runs first and every other test starts from its session. Passwords stay in a git-ignored `sova/.env`; the recording holds only the variable's name. |
-| **Refuses bad tests** | `sova check` fails a test that is out of date, breaks Playwright practice, or fails even once in five runs with retries off. |
+| **Refuses bad tests** | `sova check` fails a test that is out of date, breaks Playwright practice, or fails with retries off. `--repeat n` runs each test n times to vet new ones. |
 | **One summary page** | `sova summary` writes `sova/summary/index.html`: gate stability per test, each break and which test caught it (survivors highlighted), and the case checklist (covered by trails, by hand-written specs, n/a with reason, skipped, missing). It links to Playwright's HTML report (traces, screenshots, video of failures). `sova check` and `sova mutate` refresh it. |
 | **Tracks coverage by screen** | `sova coverage` fails while any screen has neither a working test nor a written reason to skip it. |
 | **Says no instead of guessing** | A step that cannot be replayed exactly is reported as blocked, with the step and the reason. An element no test could find again is refused before it is clicked. |
@@ -188,7 +188,7 @@ If your local backend is slow when several tests run at once, set `"workers": 2`
 | `sova heal <id>` | Replays a flow, repairs small drift, regenerates the test. |
 | `sova emit [--check]` | Regenerates every test. `--check` writes nothing and fails on stale tests. |
 | `sova lint` | Checks the tests against Playwright practices. |
-| `sova check [--repeat n]` | The gate. |
+| `sova check [--repeat n]` | The gate: every test once, retries off. `--repeat n` runs each n times in a row, for vetting newly written tests. |
 | `sova coverage` | Screens covered, skipped and uncovered. |
 | `sova run [-- <playwright args>]` | Runs the suite: `sova run -- --headed`. |
 | `sova summary` | Builds `sova/summary/index.html` from the last `check`, `mutate` and `screens.yaml`. |

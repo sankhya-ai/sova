@@ -166,8 +166,9 @@ A test that fails the gate is not done. Read the failure, then decide which is t
 - the flow asserted something unstable: drive it again with a stable assertion;
 - the test depends on leftover state: make the flow set up its own state.
 
-Never make the gate pass by deleting an assertion, adding a wait, or lowering
-`--repeat`.
+Never make the gate pass by deleting an assertion, adding a wait, or adding
+retries. Vet a newly written test with `sova check --repeat 5` before you trust it;
+the normal gate runs each test once.
 
 ### Prove the tests can fail
 

@@ -30,13 +30,26 @@ test("the page shows all three sections, escapes text and links the Playwright r
     cases: rows,
     links: { playwright: "../.results/html/index.html" },
   });
-  assert.match(html, /1 \/ 2<\/b><span>tests stable/);
+  assert.match(html, /1 \/ 2<\/b><span>tests passed \(5 runs each/);
   assert.match(html, /1 \/ 2<\/b><span>breaks caught/);
   assert.match(html, /2 \/ 5<\/b><span>cases covered: 1 by trails, 1 by hand-written/);
   assert.match(html, /A &lt;b&gt;/);
   assert.match(html, /href="..\/.results\/html\/index.html"/);
   assert.match(html, /class="survivor"/);
   assert.match(html, /flaky/);
+});
+
+test("a single-run gate says one run and uses passed / failed, not stable / flaky", () => {
+  const html = renderSummary({
+    gate: { at: "now", repeat: 1, tests: [{ file: "a.spec.ts", title: "A", passed: 1, runs: 1 }, { file: "b.spec.ts", title: "B", passed: 0, runs: 1 }] },
+    cases: [],
+    links: {},
+  });
+  assert.match(html, /one run, no retries/);
+  assert.match(html, /Every test run once/);
+  assert.match(html, />passed</);
+  assert.match(html, />failed</);
+  assert.doesNotMatch(html, /flaky|stable/);
 });
 
 test("with no runs yet the page says what to run", () => {
