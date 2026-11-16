@@ -9,5 +9,5 @@ trail:
     recording:
       web:
         - web_navigate:
-            url: "http://127.0.0.1:4000/users/:id"
+            url: "http://127.0.0.1:4000/users/2"
 

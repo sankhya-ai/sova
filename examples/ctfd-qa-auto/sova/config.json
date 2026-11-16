@@ -1,0 +1,38 @@
+{
+  "baseURL": "http://127.0.0.1:4000",
+  "startCommand": "",
+  "trailsDir": "trails",
+  "specsDir": "sova/tests",
+  "playwrightConfig": "sova/playwright.config.mts",
+  "device": "web/playwright-native",
+  "workers": 1,
+  "login": {
+    "trail": "sign-in-admin",
+    "anonymous": [
+      "auto-challenges-permission",
+      "auto-admin-statistics-permission",
+      "auto-user-permission",
+      "auto-settings-permission",
+      "auto-admin-notifications-permission",
+      "auto-admin-pages-permission",
+      "auto-admin-pages-new-permission",
+      "auto-admin-users-permission",
+      "auto-admin-scoreboard-permission",
+      "auto-admin-challenges-permission",
+      "auto-admin-modules-permission",
+      "auto-admin-audiences-permission",
+      "auto-admin-submissions-permission",
+      "auto-admin-submissions-correct-permission",
+      "auto-admin-submissions-incorrect-permission",
+      "auto-admin-config-permission",
+      "auto-admin-pages-id-permission",
+      "auto-admin-users-new-permission",
+      "auto-admin-users-id-permission",
+      "auto-admin-challenges-new-permission",
+      "auto-admin-challenges-id-permission",
+      "auto-admin-modules-new-permission",
+      "auto-admin-audiences-new-permission",
+      "auto-admin-reset-permission"
+    ]
+  }
+}

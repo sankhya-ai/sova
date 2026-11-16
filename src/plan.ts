@@ -8,7 +8,7 @@ import { CASE_KINDS } from "./cases.js";
 /** One input of a form, as the page declares it. */
 export interface PlanField { label: string; type: string; required: boolean; maxlength?: number; minlength?: number }
 export interface PlanForm { fields: PlanField[]; submit: string }
-export interface PlanPage { route: string; anonymous: "open" | "login" | "missing"; forms: PlanForm[] }
+export interface PlanPage { route: string; /** A real path that was visited, for routes with ids. */ sample?: string; anonymous: "open" | "login" | "missing"; forms: PlanForm[] }
 
 /** Screen id from a route: /admin/users -> admin-users. */
 export function screenId(route: string): string {
@@ -69,7 +69,7 @@ export function draftTrail(baseURL: string, page: PlanPage, kind: string): strin
   const form = page.forms[0];
   if (form && isDestructive(page.route, form.submit) && kind !== "permission") return null;
   const steps: string[] = [];
-  const url = baseURL.replace(/\/$/, "") + page.route;
+  const url = baseURL.replace(/\/$/, "") + (page.sample ?? page.route);
   const nav = stepYaml(`Open ${page.route}`, "web_navigate", { url });
   if (kind === "valid") {
     steps.push(...nav);
@@ -123,7 +123,7 @@ export async function planCommand(root: string, maxPages = 40): Promise<number> 
     const ar = await ap.goto(base.origin + final.pathname, { waitUntil: "domcontentloaded" }).catch(() => null);
     const anonymous = !ar || ar.status() >= 400 ? "missing" : /login/.test(new URL(ap.url()).pathname) && !/login/.test(final.pathname) ? "login" : "open";
     await ap.close();
-    pages.push({ route: normalizeRoute(final.pathname), anonymous, forms });
+    pages.push({ route: normalizeRoute(final.pathname), sample: final.pathname, anonymous, forms });
   }
   await browser.close();
   const unique = [...new Map(pages.map((p) => [p.route, p])).values()];
@@ -141,7 +141,10 @@ export async function planCommand(root: string, maxPages = 40): Promise<number> 
     writeFileSync(join(dir, "trail.yaml"), body);
     drafts++;
   }
+  // Signed-out drafts must start from no session: list them for `login.anonymous` in sova/config.json.
+  const anonymous = unique.filter((p) => p.anonymous === "login" && draftTrail(config.baseURL, p, "permission")).map((p) => `auto-${screenId(p.route)}-permission`);
+  writeFileSync(join(root, "sova", "plan.anonymous.json"), JSON.stringify(anonymous, null, 2) + "\n");
   writeFileSync(join(root, "sova", "screens.plan.yaml"), `# Drafted by \`sova plan\` from the running app. Review it, then merge it into screens.yaml.\n${stringify({ screens })}`);
-  console.log(`${unique.length} screen(s) found, ${drafts} draft flow(s) written to trails-draft/, plan in sova/screens.plan.yaml`);
+  console.log(`${unique.length} screen(s) found, ${drafts} draft flow(s) written to trails-draft/, plan in sova/screens.plan.yaml; add sova/plan.anonymous.json to login.anonymous in config.json`);
   return 0;
 }
