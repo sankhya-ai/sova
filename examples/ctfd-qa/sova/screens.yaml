@@ -1,14 +1,149 @@
-# The app's screens, mapped from its routes and components.
-# `sova coverage` fails while a screen has no working trail and no `skip:` reason.
-#
-# screens:
-#   - id: login
-#     route: /login
-#     source: src/pages/Login.tsx
-#     trails: [login, login-invalid]     # ids under trails/, i.e. trails/login/trail.yaml
-#   - id: billing
-#     route: /settings/billing
-#     source: src/pages/Billing.tsx
-#     trails: []
-#     skip: charges a real card; needs a sandbox account
-screens: []
+screens:
+- id: login
+  route: /login
+  source: ctfd/CTFd/auth.py
+  trails:
+  - sign-in-user
+  - login-wrong-password
+  cases:
+  - kind: valid
+    trail: sign-in-user
+  - kind: invalid
+    trail: login-wrong-password
+  - kind: empty
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > Login with empty fields is rejected'
+  - kind: boundary
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > Login is rate limited after 10 wrong attempts'
+  - kind: permission
+    na: 'sign-in has no permission rule: it is open to everyone and a signed-in user just sees it again'
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: register
+  route: /register
+  source: ctfd/CTFd/auth.py
+  trails:
+  - register-new-user
+  - register-duplicate-name
+  cases:
+  - kind: valid
+    trail: register-new-user
+  - kind: invalid
+    trail: register-duplicate-name
+  - kind: empty
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > Register with an empty name is rejected'
+  - kind: boundary
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > Register with a password over 128 characters is rejected'
+  - kind: permission
+    na: registration is open to everyone in this setup
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: challenges
+  route: /challenges
+  source: ctfd/CTFd/challenges.py
+  trails:
+  - challenge-correct-flag-scores
+  - challenge-wrong-flag
+  cases:
+  - kind: valid
+    trail: challenge-correct-flag-scores
+  - kind: invalid
+    trail: challenge-wrong-flag
+  - kind: empty
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > An empty flag is not accepted'
+  - kind: boundary
+    trail: challenge-flag-prefix
+  - kind: permission
+    trail: signed-out-redirects-to-login
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: scoreboard
+  route: /scoreboard
+  source: ctfd/CTFd/scoreboard.py
+  trails:
+  - challenge-correct-flag-scores
+  cases:
+  - kind: valid
+    trail: challenge-correct-flag-scores
+  - kind: invalid
+    na: 'read-only page: it takes no input'
+  - kind: empty
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > The scoreboard lists nobody while nothing is solved'
+  - kind: boundary
+    na: no limits on a read-only list in this setup (no paging at this size)
+  - kind: permission
+    na: score visibility is public in this setup
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: settings
+  route: /settings
+  source: ctfd/CTFd/views.py
+  trails:
+  - settings-update-profile
+  - settings-wrong-current-password
+  cases:
+  - kind: valid
+    trail: settings-update-profile
+  - kind: invalid
+    trail: settings-wrong-current-password
+  - kind: empty
+    na: blank fields mean "leave unchanged" here; saving an unchanged profile is the valid flow
+  - kind: boundary
+    na: no length rule beyond the register ones, already covered on register
+  - kind: permission
+    trail: settings-signed-out-redirects-to-login
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: users
+  route: /users
+  source: ctfd/CTFd/users.py
+  trails:
+  - users-list
+  cases:
+  - kind: valid
+    trail: users-list
+  - kind: invalid
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > An unknown user page is not found'
+  - kind: empty
+    na: 'the list is never empty: the seed has accounts'
+  - kind: boundary
+    na: no paging at this size
+  - kind: permission
+    na: account visibility is public in this setup
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: admin-challenges
+  route: /admin/challenges
+  source: ctfd/CTFd/admin/challenges.py
+  trails:
+  - admin-challenges-list
+  cases:
+  - kind: valid
+    trail: admin-challenges-list
+  - kind: invalid
+    na: creating challenges goes through a modal editor not yet driven; the API accepts an empty name (see report)
+  - kind: empty
+    na: 'the list is never empty: the seed has challenges'
+  - kind: boundary
+    na: no paging at this size
+  - kind: permission
+    trail: admin-challenges-redirects-user
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'
+- id: admin-users
+  route: /admin/users
+  source: ctfd/CTFd/admin/users.py
+  trails:
+  - admin-users-list
+  cases:
+  - kind: valid
+    trail: admin-users-list
+  - kind: invalid
+    skip: 'hand-written spec, not a trail: server-rules.spec.ts > Admin API rejects a second user with a taken name'
+  - kind: empty
+    na: the list is never empty
+  - kind: boundary
+    na: no paging at this size
+  - kind: permission
+    trail: admin-area-redirects-user
+  - kind: server-error
+    skip: 'not tested: the server cannot be made to fail on demand without editing it (the mutation run covers broken code, not outages)'

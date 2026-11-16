@@ -1,0 +1,39 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: settings-wrong-current-password
+
+trail:
+  - step: "Open the settings"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/settings"
+
+  - step: "Type a wrong current password"
+    recording:
+      web:
+        - web_type:
+            text: "not-my-password"
+            ref: "textbox \"Current Password\""
+
+  - step: "Type a new password"
+    recording:
+      web:
+        - web_type:
+            text: "another-pass-456"
+            ref: "textbox \"Password\""
+
+  - step: "Press Submit"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "The wrong-password error is shown"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=text=Your previous password is incorrect"
+

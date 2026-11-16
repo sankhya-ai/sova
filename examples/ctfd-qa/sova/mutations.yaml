@@ -56,8 +56,26 @@ mutations:
   note: 'permission: private challenges open to signed-out visitors'
 - id: user-delete-api-unprotected
   file: ctfd/CTFd/api/v1/users.py
-  find: "    @admins_only\n    @users_namespace.doc(\n        description=\"Endpoint\
-    \ to delete a specific User object\","
-  replace: "    @users_namespace.doc(\n        description=\"Endpoint to delete a\
-    \ specific User object\","
+  find: "    @admins_only\n    @users_namespace.doc(\n        description=\"Endpoint to delete a specific User object\","
+  replace: "    @users_namespace.doc(\n        description=\"Endpoint to delete a specific User object\","
   note: 'permission: the delete-user API no longer needs an admin'
+- id: login-rate-limit-removed
+  file: ctfd/CTFd/utils/decorators/__init__.py
+  find: "            if current_app.config.get(\"RATELIMIT_DISABLE\"):\n                return f(*args, **kwargs)\n\n            ip_address"
+  replace: "            if True:\n                return f(*args, **kwargs)\n\n            ip_address"
+  note: 'boundary: rate limits stop applying, so sign-in can be guessed without limit'
+- id: long-password-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("Pick a shorter password"))
+  replace: pass
+  note: 'validation: a password over 128 characters is accepted'
+- id: empty-name-allowed
+  file: ctfd/CTFd/auth.py
+  find: errors.append(_l("Pick a longer user name"))
+  replace: pass
+  note: 'validation: an empty user name is accepted'
+- id: settings-wrong-current-password-accepted
+  file: ctfd/CTFd/schemas/users.py
+  find: "                if test is False:\n                    raise ValidationError(\n                        \"Your previous password is incorrect\""
+  replace: "                if False:\n                    raise ValidationError(\n                        \"Your previous password is incorrect\""
+  note: 'permission: a password change no longer checks the current password'

@@ -7,9 +7,29 @@
   "device": "web/playwright-native",
   "login": {
     "trail": "sign-in-admin",
-    "anonymous": ["login-wrong-password", "signed-out-redirects-to-login", "register-duplicate-name", "challenge-wrong-flag", "challenge-wrong-flag-same-length", "challenge-flag-prefix", "challenge-correct-flag-scores"],
-    "roles": { "user": { "trail": "sign-in-user" } },
-    "as": { "admin-area-redirects-user": "user" }
+    "anonymous": [
+      "login-wrong-password",
+      "signed-out-redirects-to-login",
+      "register-duplicate-name",
+      "challenge-wrong-flag",
+      "challenge-wrong-flag-same-length",
+      "challenge-flag-prefix",
+      "challenge-correct-flag-scores",
+      "settings-signed-out-redirects-to-login",
+      "users-list",
+      "register-new-user"
+    ],
+    "roles": {
+      "user": {
+        "trail": "sign-in-user"
+      }
+    },
+    "as": {
+      "admin-area-redirects-user": "user",
+      "settings-update-profile": "user",
+      "settings-wrong-current-password": "user",
+      "admin-challenges-redirects-user": "user"
+    }
   },
   "workers": 1,
   "mutationRebuild": "sh ctfd.sh restart",

@@ -1,0 +1,32 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: settings-update-profile
+
+trail:
+  - step: "Open the settings"
+    recording:
+      web:
+        - web_navigate:
+            url: "http://127.0.0.1:4000/settings"
+
+  - step: "Type a website"
+    recording:
+      web:
+        - web_type:
+            text: "https://example.com"
+            ref: "textbox \"Website\""
+
+  - step: "Press Submit"
+    recording:
+      web:
+        - web_click:
+            ref: "button \"Submit\""
+
+  - step: "The saved message is shown"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: "css=text=Your profile has been updated"
+

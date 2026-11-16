@@ -48,6 +48,20 @@ flow("admin-area-redirects-user", nav("Open the admin users page as a regular us
      see("The login form is shown instead of the admin users page", 'textbox "User Name or Email"'))
 flow("admin-challenges-list", nav("Open the admin challenges", "/admin/challenges"), see("Warmup is listed", "css=a >> text=Warmup >> visible=true >> nth=0"))
 flow("admin-users-list", nav("Open the admin users", "/admin/users"), see("The regular user is listed", 'link "qa-user"'))
+
+# Settings (as the regular user), users list (public), admin challenges as a regular user, new registration.
+flow("settings-update-profile", nav("Open the settings", "/settings"), typ("Type a website", 'textbox "Website"', "https://example.com"),
+     click("Press Submit", 'button "Submit"'), see("The saved message is shown", "css=text=Your profile has been updated"))
+flow("settings-wrong-current-password", nav("Open the settings", "/settings"), typ("Type a wrong current password", 'textbox "Current Password"', "not-my-password"),
+     typ("Type a new password", 'textbox "Password"', "another-pass-456"), click("Press Submit", 'button "Submit"'),
+     see("The wrong-password error is shown", "css=text=Your previous password is incorrect"))
+flow("settings-signed-out-redirects-to-login", nav("Open the settings while signed out", "/settings"), see("The login form is shown", 'textbox "User Name or Email"'))
+flow("users-list", nav("Open the users list", "/users"), see("The regular user is listed", "css=a >> text=qa-user >> visible=true >> nth=0"))
+flow("admin-challenges-redirects-user", nav("Open the admin challenges as a regular user", "/admin/challenges"),
+     see("The login form is shown instead", 'textbox "User Name or Email"'))
+flow("register-new-user", nav("Open the register page", "/register"), typ("Type a new name", 'textbox "User Name"', "sova-newuser"),
+     typ("Type an email", 'textbox "Email"', "{{unique.sova-newuser@example.com}}"), typ("Type a password", 'textbox "Password"', "secret-pass-123"),
+     click("Press Submit", 'button "Submit"'), ("The challenges page opens", "web_waitForUrl", {"pattern": "/challenges"}))
 for id, t in trails.items():
     os.makedirs(f"trails/{id}", exist_ok=True)
     open(f"trails/{id}/trail.yaml", "w").write(t + "\n")
