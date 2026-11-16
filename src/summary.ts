@@ -63,7 +63,7 @@ th{background:var(--bg);font-weight:600}.badge{display:inline-block;padding:1px 
 .ok{background:#dafbe1;color:var(--ok)}.bad{background:#ffebe9;color:var(--bad)}.warn{background:#fff8c5;color:var(--warn)}.mute{background:#eaeef2;color:var(--mute)}
 .bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:#eaeef2;min-width:80px}.bar i{display:block;background:var(--ok)}.bar i.x{background:var(--bad)}
 .grid td.c{text-align:center;font-size:12px}.note{color:var(--mute);font-size:13px}code{font-size:13px;background:var(--bg);padding:1px 4px;border-radius:4px;word-break:break-all}
-.wrap{overflow-x:auto}tr.survivor td{background:#fff5f5}`;
+.wrap{overflow-x:auto}.wrap table{min-width:640px}td code{white-space:nowrap;word-break:normal}tr.survivor td{background:#fff5f5}`;
 
 function cards(input: SummaryInput): string {
   const out: string[] = [];
