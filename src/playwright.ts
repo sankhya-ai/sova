@@ -38,8 +38,8 @@ const REPORT_DIR = join("sova", "report");
 const HTML_REPORT = join("sova", ".results", "html");
 
 /**
- * Build the report for the last `sova run`: Allure when it is installed, otherwise
- * Playwright's own HTML report. Returns the process exit code.
+ * Playwright's HTML report of the last run or check (an installed Allure is still used, unadvertised);
+ * returns the process exit code.
  */
 export function report(root: string, config: SovaConfig, open: boolean): number {
   const allurePackage = join(root, "node_modules", "allure", "package.json");
@@ -59,7 +59,7 @@ export function report(root: string, config: SovaConfig, open: boolean): number 
   if (!existsSync(join(root, HTML_REPORT, "index.html"))) {
     throw new UserError("There are no results yet. Run `sova run` first, then `sova report`.");
   }
-  console.log(`report   ${join(HTML_REPORT, "index.html")}  (Playwright's report; for Allure: npm i -D allure-playwright allure)`);
+  console.log(`report   ${join(HTML_REPORT, "index.html")}  (Playwright's report; open it with `sova report --open`)`);
   if (!open) return 0;
   requirePlaywright(root, config);
   return spawnSync(process.execPath, [playwrightCli(root), "show-report", HTML_REPORT], { cwd: root, stdio: "inherit" }).status ?? 1;
