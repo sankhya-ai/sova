@@ -1,0 +1,107 @@
+1/3 specs match their trails
+current  sova/tests/admin-add-user-taken.spec.ts  (1 assertions)
+         note: step 6: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/admin-add-user-valid.spec.ts  (1 assertions)
+         note: step 6: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/admin-panel-forbidden.spec.ts  (2 assertions)
+         note: step 3: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/admin-panel-mod.spec.ts  (2 assertions)
+current  sova/tests/details-save.spec.ts  (2 assertions)
+         note: step 4: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/email-taken.spec.ts  (1 assertions)
+         note: step 6: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/email-wrong-old.spec.ts  (1 assertions)
+         note: step 6: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/login-wrong-password.spec.ts  (2 assertions)
+         note: step 5: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/logout.spec.ts  (2 assertions)
+         note: step 2: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/password-same-as-old.spec.ts  (1 assertions)
+         note: step 6: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/password-wrong-old.spec.ts  (1 assertions)
+         note: step 6: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/post-edit-forbidden.spec.ts  (2 assertions)
+         note: step 3: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/register-forbidden-username.spec.ts  (2 assertions)
+         note: step 8: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/register-password-mismatch.spec.ts  (2 assertions)
+         note: step 8: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/register-taken-email.spec.ts  (2 assertions)
+         note: step 8: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/register-taken-username.spec.ts  (2 assertions)
+         note: step 8: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/register-username-too-short.spec.ts  (2 assertions)
+         note: step 8: web_verifyValue uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/register-valid.spec.ts  (2 assertions)
+         note: step 8: web_verifyElementVisible uses a CSS selector; a role or data-testid is sturdier
+current  sova/tests/sign-in.setup.ts  (1 assertions)
+current  sova/tests/sign-in-admin.setup.ts  (1 assertions)
+current  sova/tests/sign-in-bob.setup.ts  (1 assertions)
+current  sova/tests/sign-in-mod.setup.ts  (1 assertions)
+current  sova/tests/topic-edit.spec.ts  (2 assertions)
+current  sova/tests/topic-new.spec.ts  (2 assertions)
+
+24 emitted, 0 blocked, 0 skipped (not web)
+
+2/3 Playwright practices
+  sova/tests/admin-add-user-taken.spec.ts:46  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/admin-add-user-valid.spec.ts:46  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/admin-panel-forbidden.spec.ts:15  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/details-save.spec.ts:22  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/email-taken.spec.ts:14  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/email-taken.spec.ts:18  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/email-taken.spec.ts:22  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/email-taken.spec.ts:30  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/email-wrong-old.spec.ts:14  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/email-wrong-old.spec.ts:18  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/email-wrong-old.spec.ts:22  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/email-wrong-old.spec.ts:30  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/hand-login-empty.spec.ts:10  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/hand-login-empty.spec.ts:10  warning  no-positional-locator: depends on match order; make the locator unique instead
+  sova/tests/hand-login-empty.spec.ts:12  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/hand-login-empty.spec.ts:19  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/hand-login-empty.spec.ts:19  warning  no-positional-locator: depends on match order; make the locator unique instead
+  sova/tests/hand-login-empty.spec.ts:21  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/login-wrong-password.spec.ts:26  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/logout.spec.ts:11  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/password-same-as-old.spec.ts:30  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/password-wrong-old.spec.ts:30  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/post-edit-forbidden.spec.ts:15  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/register-forbidden-username.spec.ts:54  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/register-password-mismatch.spec.ts:54  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/register-taken-email.spec.ts:34  warning  unique-test-data: a literal email can collide on the second run against a real backend; use a unique value per run, or a record the test seeds and removes
+  sova/tests/register-taken-email.spec.ts:54  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/register-taken-username.spec.ts:54  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/register-username-too-short.spec.ts:54  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+  sova/tests/register-valid.spec.ts:54  warning  prefer-user-facing-locator: CSS locator; prefer getByRole, getByLabel or getByTestId (add a data-testid to the app if needed)
+21 specs, 0 errors, 30 warnings
+
+3/3 stability: 5 runs each, no retries
+  stable  1/1  sign-in-admin.setup.ts > Sign in admin
+  stable  1/1  sign-in-bob.setup.ts > Sign in bob
+  stable  1/1  sign-in-mod.setup.ts > Sign in mod
+  stable  1/1  sign-in.setup.ts > Sign in
+  stable  5/5  admin-add-user-taken.spec.ts > Admin add user taken
+  stable  5/5  admin-add-user-valid.spec.ts > Admin add user valid
+  stable  5/5  admin-panel-forbidden.spec.ts > Admin panel forbidden
+  stable  5/5  admin-panel-mod.spec.ts > Admin panel mod
+  stable  5/5  details-save.spec.ts > Details save
+  stable  5/5  email-taken.spec.ts > Email taken
+  stable  5/5  email-wrong-old.spec.ts > Email wrong old
+  stable  5/5  hand-login-empty.spec.ts > Login with an empty password is refused
+  stable  5/5  hand-login-empty.spec.ts > Login with an empty username is refused
+  stable  5/5  login-wrong-password.spec.ts > Login wrong password
+  stable  5/5  logout.spec.ts > Logout
+  stable  5/5  password-same-as-old.spec.ts > Password same as old
+  stable  5/5  password-wrong-old.spec.ts > Password wrong old
+  stable  5/5  post-edit-forbidden.spec.ts > Post edit forbidden
+  stable  5/5  register-forbidden-username.spec.ts > Register forbidden username
+  stable  5/5  register-password-mismatch.spec.ts > Register password mismatch
+  stable  5/5  register-taken-email.spec.ts > Register taken email
+  stable  5/5  register-taken-username.spec.ts > Register taken username
+  stable  5/5  register-username-too-short.spec.ts > Register username too short
+  stable  5/5  register-valid.spec.ts > Register valid
+  stable  5/5  topic-edit.spec.ts > Topic edit
+  stable  5/5  topic-new.spec.ts > Topic new
+
+Gate passed.

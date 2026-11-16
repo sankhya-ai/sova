@@ -1,0 +1,25 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: logout
+
+trail:
+  - step: "Sign out"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/auth/logout
+
+  - step: "The logged-out message is shown [code]"
+    recording:
+      web:
+        - web_verifyValue:
+            ref: css=.alert-success
+            expected: Logged out
+
+  - step: "The Login link is shown again, the member is signed out [code]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: link "Login"

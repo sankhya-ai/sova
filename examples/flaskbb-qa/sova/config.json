@@ -33,7 +33,9 @@
       "email-wrong-old": "bob",
       "email-taken": "bob",
       "details-save": "bob",
-      "admin-add-user-taken": "admin"
+      "admin-add-user-taken": "admin",
+      "admin-add-user-valid": "admin",
+      "admin-panel-mod": "mod"
     }
   },
   "workers": 1,

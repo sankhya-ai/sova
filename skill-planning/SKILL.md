@@ -75,8 +75,9 @@ yet followed this file with a real agent (see "What is untested").
 
 - One fresh run followed this file on FlaskBB (Python, SQLite): steps 0 to 5 and 7 partly, see
   `examples/flaskbb-qa/RUN-NOTES.md` for what worked, what needed judgment and what is missing.
-  Not yet shown: the case checklist filled in for every screen, an empty or server-error case,
-  and a gate of 5 stable runs on the full suite.
+  Result: gate passed (22 tests 5/5), 16 of 16 mutations killed and attributed, checklist filled
+  for 10 screens (17 covered, 34 skipped of which 24 only mean "not examined"). Not shown: full
+  coverage of the app (10 of ~100 routes), server-error cases, a rate limiter test, any second app.
 - `sova plan` reads forms and links. It cannot see server rules, modals, menus that open on
   click, or state. On FlaskBB it found 22 pages of about 100 routes.
 - Native mobile apps are out of scope: Sova drives a browser.

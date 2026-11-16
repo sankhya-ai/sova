@@ -34,3 +34,12 @@ Those come from reading the source.
   maximum length (FlaskBB: 20).
 - Never change the password of the account a sign-in flow uses; give password-change flows
   their own role account (`login.as`).
+- A case holds one `trail:`; list the other trails of that screen under the screen's `trails:`.
+- `sova coverage` accepts any skip text. Keep two counts: skips with a real cause ("cannot make the
+  backend fail") and skips that only mean "not examined yet". Report the second one as untested.
+- Hand-written specs sit in `sova/tests/` as `hand-<name>.spec.ts`; `sova emit --check` does not
+  call them orphans. They run with the saved session, so start a signed-out one with
+  `test.use({ storageState: { cookies: [], origins: [] } })`. To submit a form the browser would
+  block, set `novalidate` on the form first.
+- Content a flow creates piles up over the 5 gate runs. Create it in the same flow with a
+  `unique:` title and assert it on its own page; do not assert a fixed string on a shared list.

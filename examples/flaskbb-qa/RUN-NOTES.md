@@ -23,17 +23,24 @@ Not react-admin, Gitea, CTFd or the sova demo. Followed only `skill-planning/` a
 10. Orphan `sign-in.spec.ts` files written before `login.trail` was set fail the baseline of
     `sova mutate` until deleted (emit prints "orphan", mutate only says the suite fails).
 
-## Not done
-- Case checklist (`sova cases init`) added, not filled: 54 cases, 0 covered, 0 n/a, 0 skipped, 54 missing.
-- No hand-written specs for `required` inputs, no moderator or admin happy paths, no topic reply,
-  edit, delete, report or ban flows, no `sova check` 5x run.
-- `/admin/users` as a regular member shows two alerts and did not match the panel message; unresolved.
-- Test seed changed: ACTIVATE_ACCOUNT=false, AUTH_REQUESTS=1000.
+## Second pass
+- Fixed the 2 invalid mutations (YAML block scalars strip the first line's indent, so a multi-line
+  find never matched mid-file code). Added 4 more.
+- `sova mutate`, run alone, app restored from seed before each: **16 killed, 0 survived, 0 invalid.**
+  Each kill is caught by the test about that behaviour (see list above, plus: duplicate username and
+  email at registration, logout message, admin add-user message, empty password (hand-written spec),
+  admin form taken username).
+- Gate: `sova check` (5 runs, no retries): 22 tests stable 5/5, 4 sign-in setups 1/1, lint 0 errors
+  (28+ warnings, all "CSS locator" for message text). Includes 2 hand-written tests in `sova/tests/hand-login-empty.spec.ts`.
+- Case checklist filled for 10 screens: 17 covered, 9 n/a (named reasons), 34 skipped, 0 missing of 60.
+  Of the 34 skips: 10 are real causes (backend cannot be made to fail, lockout, would break the shared
+  account), 24 are "not examined yet" and should be read as untested.
 
-## Mutation result (`sova mutate`, run alone, app restored from seed before each)
-10 killed, 0 survived, 2 invalid (my multi-line `find` text did not match the file's whitespace, so
-those two mutations never ran: duplicate username and duplicate email at registration are NOT proven).
-Every kill names the test about that behaviour. Raw: `sova mutate` log in this folder's notes above.
-Kills: old-password, same-password, old-email, duplicate change-email, username length, blacklist,
-any-password login, admin panel open, edit any post, details message.
-Stability: `sova check` (5 runs) was NOT run on the full suite; only the mutate baseline and single runs passed.
+## Still not done
+- Only 10 of about 100 routes are in screens.yaml. Not covered: topic reply/delete/report/hide/lock,
+  moderator actions, ban/unban, group and forum admin, search, memberlist, attachments, avatar upload.
+- No valid password change or email change (would break the seeded accounts; needs a throwaway account).
+- Empty-input cases other than login have no hand-written spec yet.
+- The rate limiter itself is untested (raised to 1000 in the seed).
+- `/admin/users` as a regular member shows two alerts and did not match the panel message; unresolved.
+- Test seed changed: ACTIVATE_ACCOUNT=false, AUTH_REQUESTS=1000. One browser, one machine, one app.

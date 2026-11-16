@@ -1,0 +1,63 @@
+config:
+  devices:
+    web:
+      driver: PLAYWRIGHT_NATIVE
+  title: topic-edit
+
+trail:
+  - step: "Open the new topic form"
+    recording:
+      web:
+        - web_navigate:
+            url: http://localhost:5000/1-welcome/topic/new
+
+  - step: "Type a title"
+    recording:
+      web:
+        - web_type:
+            text: "{{unique.Edit me}}"
+            ref: textbox "Topic title"
+
+  - step: "Type the content"
+    recording:
+      web:
+        - web_type:
+            text: First version.
+            ref: textbox "Content"
+
+  - step: "Press Post topic"
+    recording:
+      web:
+        - web_click:
+            ref: button "Post topic"
+
+  - step: "The first version is shown [code]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: paragraph "First version."
+
+  - step: "Open the edit form"
+    recording:
+      web:
+        - web_click:
+            ref: link "Edit this topic"
+
+  - step: "Replace the content"
+    recording:
+      web:
+        - web_type:
+            text: Second version.
+            ref: textbox "Content"
+
+  - step: "Press Save topic"
+    recording:
+      web:
+        - web_click:
+            ref: button "Save topic"
+
+  - step: "The edited content is shown [code]"
+    recording:
+      web:
+        - web_verifyElementVisible:
+            ref: paragraph "Second version."

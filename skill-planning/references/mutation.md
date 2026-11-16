@@ -26,8 +26,14 @@ Run `sova mutate` alone. Never next to `sova check`. Pick an app whose source yo
 on your machine: Gitea (Go) could not be rebuilt on a 2GB box, so only 1 mutation counted there.
 CTFd (Python) rebuilds in seconds.
 
-A multi-line `find` must match the file byte for byte, indentation included. A miss is reported
-as `invalid ... text to replace was not found` and the mutation never ran: it is not a survivor and
-proves nothing. Copy the lines with `sed -n` instead of retyping them. `sova mutate` also stops at the
-baseline when stale specs exist (e.g. `sign-in.spec.ts` written before `login.trail` was set;
-`sova emit` calls them orphans): delete them first. FlaskBB: 12 mutations, about 25 s each.
+A multi-line `find` in a YAML `|` block never matches mid-file code: YAML strips the first line's
+indentation, so the next lines lose their indent relative to the file. Result: `invalid ... text to
+replace was not found`, and the mutation never ran (not a survivor, proves nothing). Two safe
+ways: pick a single-line find that is unique, or put the next line in the find as a double-quoted
+YAML string with real `\n` and the file's exact spaces
+(`"if count != 0:  # pragma: no branch\n            raise ValidationError(\n                \"username\","`).
+Check before running: `python3 -c` that `find in open(file).read()`. Two mutations of the same
+shape in one file need the following line to tell them apart.
+`sova mutate` also stops at the baseline when stale specs exist (e.g. `sign-in.spec.ts` written
+before `login.trail` was set; `sova emit` calls them orphans): delete them first. FlaskBB: 12
+mutations, about 25 s each.

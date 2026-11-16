@@ -1,162 +1,193 @@
 screens:
-  - id: login
-    route: /auth/login
-    source: flaskbb/auth/views.py
-    trails: [ login-wrong-password ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: register
-    route: /auth/register
-    source: flaskbb/auth/views.py
-    trails:
-      [
-        register-valid,
-        register-taken-username,
-        register-forbidden-username,
-        register-username-too-short,
-        register-password-mismatch,
-        register-taken-email
-      ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: settings-password
-    route: /user/settings/password
-    source: flaskbb/user/views.py
-    trails: [ password-wrong-old, password-same-as-old ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: settings-email
-    route: /user/settings/email
-    source: flaskbb/user/views.py
-    trails: [ email-wrong-old, email-taken ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: settings-user-details
-    route: /user/settings/user-details
-    source: flaskbb/user/views.py
-    trails: [ details-save ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: new-topic
-    route: /1-welcome/topic/new
-    source: flaskbb/forum/views.py
-    trails: [ topic-new ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: edit-post
-    route: /post/1/edit
-    source: flaskbb/forum/views.py
-    trails: [ post-edit-forbidden ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: admin-overview
-    route: /admin/
-    source: flaskbb/management/views.py
-    trails: [ admin-panel-forbidden ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
-  - id: admin-add-user
-    route: /admin/users/add
-    source: flaskbb/management/views.py
-    trails: [ admin-add-user-taken ]
-    cases:
-      - kind: valid
-        trail: ""
-      - kind: invalid
-        trail: ""
-      - kind: empty
-        trail: ""
-      - kind: boundary
-        trail: ""
-      - kind: permission
-        trail: ""
-      - kind: server-error
-        trail: ""
+- id: login
+  route: /auth/login
+  source: flaskbb/auth/views.py
+  trails:
+  - login-wrong-password
+  - sign-in
+  cases:
+  - kind: valid
+    trail: sign-in
+  - kind: invalid
+    trail: login-wrong-password
+  - kind: empty
+    skip: 'hand-written spec, not a trail: sova/tests/hand-login-empty.spec.ts > two tests'
+  - kind: boundary
+    skip: account lockout after repeated failed logins exists in code (login_attempts) but would lock a seeded account; not tested
+  - kind: permission
+    na: page is open to signed-out visitors
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: register
+  route: /auth/register
+  source: flaskbb/auth/views.py
+  trails:
+  - register-valid
+  - register-taken-username
+  - register-forbidden-username
+  - register-username-too-short
+  - register-password-mismatch
+  - register-taken-email
+  cases:
+  - kind: valid
+    trail: register-valid
+  - kind: invalid
+    trail: register-taken-username
+  - kind: empty
+    skip: browser blocks the empty required field; needs a hand-written spec, not written yet (register form)
+  - kind: boundary
+    trail: register-username-too-short
+  - kind: permission
+    na: page is open to signed-out visitors
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: settings-password
+  route: /user/settings/password
+  source: flaskbb/user/views.py
+  trails:
+  - password-wrong-old
+  - password-same-as-old
+  cases:
+  - kind: valid
+    skip: changing the password would break the account other flows sign in with; needs a throwaway account created by the test, not done
+  - kind: invalid
+    trail: password-wrong-old
+  - kind: empty
+    skip: browser blocks the empty required field; needs a hand-written spec, not written yet (password form)
+  - kind: boundary
+    skip: 'not examined in this run: password length rules'
+  - kind: permission
+    skip: 'not examined in this run: signed-out redirect'
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: settings-email
+  route: /user/settings/email
+  source: flaskbb/user/views.py
+  trails:
+  - email-wrong-old
+  - email-taken
+  cases:
+  - kind: valid
+    skip: changing the email of a seeded account would break later runs; needs a throwaway account, not done
+  - kind: invalid
+    trail: email-wrong-old
+  - kind: empty
+    skip: browser blocks the empty required field; needs a hand-written spec, not written yet (email form)
+  - kind: boundary
+    trail: email-taken
+  - kind: permission
+    skip: 'not examined in this run: signed-out redirect'
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: settings-user-details
+  route: /user/settings/user-details
+  source: flaskbb/user/views.py
+  trails:
+  - details-save
+  cases:
+  - kind: valid
+    trail: details-save
+  - kind: invalid
+    skip: 'not examined in this run: birthday and website validation'
+  - kind: empty
+    skip: 'not examined in this run: which fields are required'
+  - kind: boundary
+    skip: 'not examined in this run: field length limits'
+  - kind: permission
+    skip: 'not examined in this run: signed-out redirect'
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: new-topic
+  route: /1-welcome/topic/new
+  source: flaskbb/forum/views.py
+  trails:
+  - topic-new
+  cases:
+  - kind: valid
+    trail: topic-new
+  - kind: invalid
+    skip: browser blocks the empty required field; needs a hand-written spec, not written yet (empty title)
+  - kind: empty
+    skip: browser blocks the empty required field; needs a hand-written spec, not written yet (empty content)
+  - kind: boundary
+    skip: 'not examined in this run: title and content length limits'
+  - kind: permission
+    skip: 'not examined in this run: signed-out redirect and banned or locked-forum users'
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: edit-post
+  route: /post/1/edit
+  source: flaskbb/forum/views.py
+  trails:
+  - post-edit-forbidden
+  - topic-edit
+  cases:
+  - kind: valid
+    trail: topic-edit
+  - kind: invalid
+    skip: 'not examined in this run: empty content on edit'
+  - kind: empty
+    skip: 'not examined in this run: empty content on edit'
+  - kind: boundary
+    skip: 'not examined in this run: length limits'
+  - kind: permission
+    trail: post-edit-forbidden
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: admin-overview
+  route: /admin/
+  source: flaskbb/management/views.py
+  trails:
+  - admin-panel-forbidden
+  - admin-panel-mod
+  - sign-in-admin
+  cases:
+  - kind: valid
+    trail: sign-in-admin
+  - kind: invalid
+    na: 'read-only overview: it takes no input'
+  - kind: empty
+    na: 'read-only overview: it takes no input'
+  - kind: boundary
+    na: 'read-only overview: it takes no input'
+  - kind: permission
+    trail: admin-panel-forbidden
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: admin-add-user
+  route: /admin/users/add
+  source: flaskbb/management/views.py
+  trails:
+  - admin-add-user-taken
+  - admin-add-user-valid
+  cases:
+  - kind: valid
+    trail: admin-add-user-valid
+  - kind: invalid
+    trail: admin-add-user-taken
+  - kind: empty
+    skip: browser blocks the empty required field; needs a hand-written spec, not written yet (add-user form)
+  - kind: boundary
+    skip: 'not examined in this run: username and password limits in the admin form'
+  - kind: permission
+    skip: 'not examined in this run: a member opening /admin/users/add'
+  - kind: server-error
+    skip: cannot make the backend fail on demand
+- id: logout
+  route: /auth/logout
+  source: flaskbb/auth/views.py
+  trails:
+  - logout
+  cases:
+  - kind: valid
+    trail: logout
+  - kind: invalid
+    na: no input
+  - kind: empty
+    na: no input
+  - kind: boundary
+    na: no input
+  - kind: permission
+    na: signing out is open to anyone
+  - kind: server-error
+    skip: cannot make the backend fail on demand
