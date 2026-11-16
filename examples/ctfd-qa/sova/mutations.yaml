@@ -76,6 +76,6 @@ mutations:
   note: 'validation: an empty user name is accepted'
 - id: settings-wrong-current-password-accepted
   file: ctfd/CTFd/schemas/users.py
-  find: "                if test is False:\n                    raise ValidationError(\n                        \"Your previous password is incorrect\""
-  replace: "                if False:\n                    raise ValidationError(\n                        \"Your previous password is incorrect\""
+  find: "                if test is True:\n                    return data\n                else:"
+  replace: "                if True:\n                    return data\n                else:"
   note: 'permission: a password change no longer checks the current password'
