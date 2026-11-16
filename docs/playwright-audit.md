@@ -27,16 +27,19 @@ Fixed in this PR:
 1. **Trace setting.** Playwright recommends trace on first retry in CI, and says not to set it to `on` for every run. Sova used `retain-on-failure`, which records every run. Now `on-first-retry` in CI and `retain-on-failure` locally (retries are 0 locally, so first-retry would give no trace).
 2. **Literal test data.** Generated create tests type values like `ada@example.com`. Against a real backend the second run can collide, which breaks isolation. New lint warning `unique-test-data`. It cannot be fixed by the generator alone, because only the agent knows which field must be unique.
 
+3. **Test titles** were the trail id. `sova emit` now turns an id into a sentence ("Customers create valid"). A title that is already a sentence is left alone.
+4. **Cleanup and fixtures.** `sova init` now writes `sova/fixtures.ts` once. Generated specs import `test` and `expect` from it, so shared setup, page objects and an auto `cleanup` fixture live in one place. The template only provides the hook. What to delete is app specific, so the agent or developer registers it. On the react-admin demo the data is in memory, so there is nothing to clean up and no cleanup was written.
+5. **Per-run unique data.** `sova act type text=unique:<value>` records `{{unique.<value>}}`; the spec then types a value made unique per run. This clears the `unique-test-data` warning on the demo.
+6. **Weak "still on URL" checks.** Where the app shows an error, the flow now asserts it: the field-level "Required" error, or the browser's own `:invalid` state when native validation blocks the submit. One remains: the signed-out redirect asserts the login route, because the login page rendered blank after that redirect in the demo.
+7. **Smoke-only flows.** The 8 smoke flows each got one real interaction (sort flips, open the create form, open a row, navigate by menu). These are light checks of behaviour, not data-changing flows.
+
 Not fixed, listed for follow-up:
-3. **Shared login for tests that change data.** The auth guide recommends one shared state for tests without server-side state, and one account per parallel worker for tests that modify server state. Sova always shares one. Risk: parallel create/edit tests on the same account can interfere. Not hit on the demo (in-memory data).
-4. **Test titles are the trail id** (`customers-create-valid`), not a sentence describing behaviour. Readable enough, not a convention-follower. Fix is in `sova save` (humanize the title).
-5. **No cleanup of created records.** `customers-create-valid` leaves a customer behind. Fine on a throwaway demo, wrong on a shared environment.
-6. **No page objects or fixtures.** The POM guide suggests them for large suites. Every spec repeats its navigation and field steps. Not wrong at 16 tests; it will hurt at hundreds. A fixture layer would be a real design change.
-7. **`exact: true` on every accessible name.** Stricter than the default substring match. Resists wrong matches, breaks on any copy change. A trade-off, not a violation.
-8. **URL assertions are unanchored regexes** (`/customers\/create/`). Used for "still on the form", which only proves a submit did not navigate. The mutation run showed this: see the PR description.
-9. **Assertion strength.** 8 of 16 flows are still smoke (a heading is visible). Graded by `sova assertions`.
-10. **No grouping or tags.** No `describe` per screen, no `@smoke` tags. Cosmetic until the suite is large.
-11. **Video is on (retain-on-failure).** Playwright says use the trace viewer rather than video for CI. Kept because the Allure report uses it.
+8. **Shared login for tests that change data.** The auth guide recommends one account per parallel worker for tests that modify server state. Sova always shares one.
+9. **Page objects.** The fixture file is the place for them, but Sova does not generate any.
+10. **`exact: true` on every accessible name.** A trade-off, not a violation.
+11. **No grouping or tags.** No `describe` per screen, no `@smoke` tags.
+12. **Video is on (retain-on-failure).** Kept because the Allure report uses it.
+13. **CSS locators.** The new checks use four `css=` refs (for example the first visible `p.Mui-error`). The linter warns on them. A `data-testid` in the app would remove that.
 
 ## What is not checked
 
