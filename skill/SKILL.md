@@ -208,3 +208,8 @@ For CI: `npx --no-install sova emit --check && npx --no-install sova run`.
   flows, gate.
 - A screen was removed: delete its `trails/<id>` folders and its entry;
   `sova emit --check` names the orphaned specs to delete.
+
+## Data that must be unique, and fixtures
+
+When a flow creates a record, type its unique field with `text=unique:<value>` (for example `text=unique:ada@example.com`). The spec makes it unique per run. Shared setup, page objects and cleanup go in `sova/fixtures.ts`; register what a test created with the `cleanup` fixture.
+When the app shows an error, assert the error text. Only fall back to "still on the URL" when nothing is shown.
