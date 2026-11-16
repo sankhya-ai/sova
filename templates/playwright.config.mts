@@ -25,6 +25,10 @@ if (existsSync(envFile)) {
 const signsIn = Boolean(sova.login?.trail);
 const authState = join(here, '.auth', 'user.json');
 process.env.SOVA_AUTH_STATE = authState;
+// Extra roles (config "login.roles") each keep their own saved session.
+for (const role of Object.keys(sova.login?.roles ?? {})) {
+  process.env[`SOVA_AUTH_STATE_${role.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`] = join(here, '.auth', `${role}.json`);
+}
 
 // Allure results are written when allure-playwright is installed; `sova report` builds the report.
 const hasAllure = (() => {

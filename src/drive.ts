@@ -319,8 +319,9 @@ export function reset(root: string, config: SovaConfig): number {
  * Sign the driven browser in by replaying the configured sign-in flow, without recording it.
  * Flows driven afterwards start signed in, the way their tests will.
  */
-export function login(root: string, config: SovaConfig): number {
-  const id = config.login?.trail;
+export function login(root: string, config: SovaConfig, role?: string): number {
+  const id = role ? config.login?.roles?.[role]?.trail : config.login?.trail;
+  if (role && !id) throw new UserError(`No role "${role}" in login.roles. Known: ${Object.keys(config.login?.roles ?? {}).join(", ") || "none"}.`);
   if (!id) {
     throw new UserError('No sign-in flow is configured. Drive one, save it, then set "login": { "trail": "<id>" } in sova/config.json.');
   }

@@ -33,7 +33,8 @@ Usage: sova <command> [options]
                     session, and generate the Playwright spec.
   discard           Abandon the flow in progress and close the browser session.
   reset             Start over with a clean, signed-out browser.
-  login             Sign the driven browser in with the configured sign-in flow,
+  login [--as <role>]
+                    Sign the driven browser in with the configured sign-in flow,
                     so the flows you drive next start signed in.
   heal <id>         Replay a trail and repair steps the app has drifted from,
                     then regenerate its spec.
@@ -260,7 +261,7 @@ async function main(): Promise<number> {
     case "reset":
       return reset(root, loadConfig(root));
     case "login":
-      return login(root, loadConfig(root));
+      return login(root, loadConfig(root), args.includes("--as") ? args[args.indexOf("--as") + 1] : undefined);
     case "heal": {
       const id = args[0];
       if (!id) throw new UserError("Usage: sova heal <id>");

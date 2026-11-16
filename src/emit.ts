@@ -187,12 +187,18 @@ export interface EmitResult {
 }
 
 /** Turn one parsed trail into a Playwright spec. */
+/** The environment variable that holds a role's saved session file. */
+export function stateEnv(role: string): string {
+  return `SOVA_AUTH_STATE_${role.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
+}
+
 export function emitTrail(
   trail: Trail,
   sourceLabel: string,
   fallbackTitle: string,
   config: Pick<SovaConfig, "baseURL"> & { fixturesImport?: string },
   role: "test" | "login" | "anonymous" = "test",
+  session: { saveEnv?: string; useEnv?: string } = {},
 ): EmitResult {
   const warnings: string[] = [];
   if (!trail.isWeb) return { spec: null, status: "skipped", reason: "not a web trail", warnings, assertions: 0 };
@@ -243,7 +249,7 @@ export function emitTrail(
     // similar keep theirs in IndexedDB, so that is saved along with cookies and storage.
     blocks.push(
       "  await test.step('Keep the signed-in session for the other tests', async () => {\n" +
-        "    await page.context().storageState({ path: process.env.SOVA_AUTH_STATE!, indexedDB: true });\n" +
+        "    await page.context().storageState({ path: process.env." + (session.saveEnv ?? "SOVA_AUTH_STATE") + "!, indexedDB: true });\n" +
         "  });",
     );
   }
@@ -275,7 +281,10 @@ export function emitTrail(
     (role === "login" || role === "anonymous"
       ? "// Starts signed out, whatever session the rest of the suite shares.\n" +
         "test.use({ storageState: { cookies: [], origins: [] } });\n\n"
-      : "");
+      : session.useEnv
+        ? `// Starts from the ${session.useEnv.replace("SOVA_AUTH_STATE_", "").toLowerCase()} session, not the default one.\n` +
+          `test.use({ storageState: process.env.${session.useEnv}! });\n\n`
+        : "");
   const spec =
     `${GENERATED_MARKER}${sourceLabel}\n` +
     "// Do not edit. Change the trail, then run `sova emit`.\n" +
@@ -336,13 +345,21 @@ export function emitAll(root: string, config: SovaConfig, write: boolean): EmitR
 
   for (const trailPath of walk(trailsDir, isTrailFile)) {
     const id = trailId(trailPath, trailsDir);
-    const role = id === config.login?.trail ? "login" : config.login?.anonymous?.includes(id) ? "anonymous" : "test";
+    const login = config.login;
+    const roleLogin = Object.entries(login?.roles ?? {}).find(([, r]) => r.trail === id)?.[0];
+    const asRole = login?.as?.[id];
+    const role = id === login?.trail || roleLogin ? "login" : login?.anonymous?.includes(id) ? "anonymous" : "test";
+    const session = roleLogin
+      ? { saveEnv: stateEnv(roleLogin) }
+      : asRole
+        ? { useEnv: stateEnv(asRole) }
+        : {};
     // The sign-in flow is a Playwright setup file: it runs before the tests that depend on it.
     const specPath = join(specsDir, `${id}.${role === "login" ? "setup" : "spec"}.ts`);
     let result: EmitResult;
     try {
       const label = relative(root, trailPath).split(sep).join("/");
-      result = emitTrail(readTrail(trailPath), label, id, { ...config, fixturesImport }, role);
+      result = emitTrail(readTrail(trailPath), label, id, { ...config, fixturesImport }, role, session);
     } catch (error) {
       result = { spec: null, status: "blocked", reason: (error as Error).message, warnings: [], assertions: 0 };
     }

@@ -363,7 +363,7 @@ test("lint warns on a literal email typed into a field", () => {
   assert.ok(!lintSource("await page.getByRole('textbox').fill(env('APP_TEST_EMAIL'));\nexpect(1)").some((f) => f.rule === "unique-test-data"));
 });
 
-import { humanizeTitle } from "../src/emit.js";
+import { humanizeTitle, stateEnv } from "../src/emit.js";
 
 test("a trail id becomes a readable title; a real sentence is left alone", () => {
   assert.equal(humanizeTitle("customers-create-valid"), "Customers create valid");
@@ -382,4 +382,16 @@ test("a unique value, and a fixtures import, reach the generated spec", () => {
   assert.match(out.spec!, /\.fill\(unique\('ada@example\.com'\)\)/);
   assert.match(out.spec!, /test\('Customers create'/);
   assert.ok(!lintSource(out.spec!).some((f) => f.rule === "unique-test-data"));
+});
+
+test("a second role saves its own session, and a trail can start from it", () => {
+  const trail = parseTrail(
+    "config:\n  devices:\n    web:\n      driver: PLAYWRIGHT_NATIVE\ntrail:\n" +
+      '  - step: "Open"\n    recording:\n      web:\n        - web_navigate:\n            url: http://x/\n',
+  );
+  const setup = emitTrail(trail, "t", "sign-in-user", { baseURL: "http://x" }, "login", { saveEnv: "SOVA_AUTH_STATE_USER" });
+  assert.match(setup.spec!, /process\.env\.SOVA_AUTH_STATE_USER!/);
+  const spec = emitTrail(trail, "t", "t", { baseURL: "http://x" }, "test", { useEnv: "SOVA_AUTH_STATE_USER" });
+  assert.match(spec.spec!, /test\.use\(\{ storageState: process\.env\.SOVA_AUTH_STATE_USER! \}\);/);
+  assert.equal(stateEnv("Read Only"), "SOVA_AUTH_STATE_READ_ONLY");
 });

@@ -20,7 +20,17 @@ export interface SovaConfig {
    * every other test starts from the session it leaves. Trails listed in `anonymous` start
    * signed out instead (the sign-in page's own tests).
    */
-  login?: { trail: string; anonymous?: string[] };
+  login?: {
+    trail: string;
+    anonymous?: string[];
+    /**
+     * More sign-ins for apps with roles. `trail` above is the default role (usually the
+     * admin or the main user). Each entry here is another role with its own sign-in flow.
+     */
+    roles?: Record<string, { trail: string }>;
+    /** Trail id -> role name. That trail starts from that role's session instead of the default one. */
+    as?: Record<string, string>;
+  };
   /** How many tests run at once. Leave unset for Playwright's default. */
   workers?: number;
   /** How long an assertion waits, in milliseconds. Playwright's default is 5000. */
